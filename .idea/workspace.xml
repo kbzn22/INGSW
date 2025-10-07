@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="8443b11f-7644-4431-a243-01c617de6497" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/ingsw-app/src/test/java/com/grupo1/ingsw_app/persistance/IPacienteRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ingsw-app/src/test/java/com/grupo1/ingsw_app/persistance/Paciente.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ingsw-app/src/main/java/com/grupo1/ingsw_app/domain/Paciente.java" beforeDir="false" afterPath="$PROJECT_DIR$/ingsw-app/src/main/java/com/grupo1/ingsw_app/domain/Paciente.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ingsw-app/src/main/java/com/grupo1/ingsw_app/persistance/IPacientesRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/ingsw-app/src/main/java/com/grupo1/ingsw_app/persistance/PacienteRepositoryInMemory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ingsw-app/src/test/java/com/grupo1/ingsw_app/steps/BusquedaPacienteStepDefinitions.java" beforeDir="false" afterPath="$PROJECT_DIR$/ingsw-app/src/test/java/com/grupo1/ingsw_app/steps/BusquedaPacienteStepDefinitions.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 0
+}]]></component>
+  <component name="ProjectId" id="33kGB3jVioUnYleraXqU0naFz5G" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "Modulo-de-urgencias",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/enzo/Proyectos/TrabajoIngenieriaDeSoftware/INGSW/ingsw-app"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8443b11f-7644-4431-a243-01c617de6497" name="Changes" comment="" />
+      <created>1759853517341</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1759853517341</updated>
+    </task>
+    <servers />
+  </component>
+</project>

@@ -1,17 +1,26 @@
+package com.grupo1.ingsw_app.domain;
+
 public class Paciente {
-    int dni;
-    String nombre;
+    private String dni;
+    private String nombre;
+
     // para usar el dataTable necesitas crear constructor vacio noseporq
     public Paciente() {}
-    public String getDni() { return dni; }
-    public void setDni(String dni) { this.dni = dni; }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public Paciente(String nombreCompleto, int dni) {
-        this.nombreCompleto = nombreCompleto;
+    public Paciente(String dni, String nombre) {
         this.dni = dni;
+        this.nombre = nombre;
     }
+
+    public String getDni() {
+        return dni;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+    /*
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -24,7 +33,6 @@ public class Paciente {
     @Override
     public int hashCode() {
         return Objects.hash(dni, nombre);
-    }
-
+    }*/
 
 }

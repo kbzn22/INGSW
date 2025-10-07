@@ -52,6 +52,14 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<!-- Integración de Cucumber con Spring Boot -->
+		<dependency>
+			<groupId>io.cucumber</groupId>
+			<artifactId>cucumber-spring</artifactId>
+			<version>7.14.0</version>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- Cucumber Java -->
 		<dependency>
 			<groupId>io.cucumber</groupId>
