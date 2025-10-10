@@ -1,6 +1,7 @@
 package com.grupo1.ingsw_app.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
@@ -110,4 +111,5 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
                 "El mensaje esperado era '" + mensajeEsperado + "' pero fue '" + cuerpo + "'");
 
     }
+
 }
