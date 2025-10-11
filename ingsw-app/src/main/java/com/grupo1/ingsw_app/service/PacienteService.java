@@ -3,6 +3,7 @@ package com.grupo1.ingsw_app.service;
 import org.springframework.stereotype.Service;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 import com.grupo1.ingsw_app.domain.Paciente;
+import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
 import java.util.Optional;
 
@@ -15,12 +16,11 @@ public class PacienteService {
         this.repo = repo;
     }
 
-    public Paciente buscarPorDni(String dni) {
-        if (dni == null || !dni.matches("\\d+")) {
-            throw new IllegalArgumentException("DNI inválido");
-        }
+    public Paciente buscarPorCuil(String cuilString) {
 
-        Optional<Paciente> paciente = repo.findByDni(dni);
+        Cuil cuil = new Cuil(cuilString);
+
+        Optional<Paciente> paciente = repo.findByCuil(cuil.getValor());
 
         if (paciente.isEmpty()) {
             throw new RuntimeException("Paciente no encontrado");

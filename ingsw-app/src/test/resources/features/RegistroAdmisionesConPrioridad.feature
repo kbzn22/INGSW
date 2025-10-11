@@ -143,3 +143,5 @@ Feature: Registro de admisiones en urgencias
       | 09:04  | 2        |
       | 09:07  | 3        |
       | 09:12  | 4        |
+
+# no toquen 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

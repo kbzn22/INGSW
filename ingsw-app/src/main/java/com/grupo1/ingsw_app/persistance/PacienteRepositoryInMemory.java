@@ -16,13 +16,13 @@ public class PacienteRepositoryInMemory implements IPacienteRepository {
     private final Map<String, Paciente> data = new HashMap<>();
 
     @Override
-    public Optional<Paciente> findByDni(String dni) {
-        return Optional.ofNullable(data.get(dni));
+    public Optional<Paciente> findByCuil(String cuil) {
+        return Optional.ofNullable(data.get(cuil));
     }
 
     @Override
     public void save(Paciente paciente) {
-        data.put(paciente.getDni(), paciente);
+        data.put(paciente.getCuil().getValor(), paciente);
     }
 
    /* @Override

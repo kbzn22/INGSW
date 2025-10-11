@@ -1,24 +1,16 @@
 package com.grupo1.ingsw_app.domain;
 
-public class Paciente {
-    private String dni;
-    private String nombre;
+import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
-    // para usar el dataTable necesitas crear constructor vacio noseporq
-    public Paciente() {}
+public class Paciente extends Persona {
 
-    public Paciente(String dni, String nombre) {
-        this.dni = dni;
-        this.nombre = nombre;
+    public Paciente (){
     }
 
-    public String getDni() {
-        return dni;
+    public Paciente(String cuil, String nombre) {
+        super(new Cuil(cuil), nombre);
     }
 
-    public String getNombre() {
-        return nombre;
-    }
     /*
 
     @Override

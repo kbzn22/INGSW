@@ -1,16 +1,35 @@
 package com.grupo1.ingsw_app.domain;
 
+import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
+
 public abstract class Persona {
+    private Cuil cuil;
     private String nombre;
     private String apellido;
-    private String cuil;
     private String email;
 
-    public Persona(String nombre, String apellido, String cuil, String email) {
+    public Persona(){
+
+    }
+
+    public Persona(Cuil cuil, String nombre, String apellido, String email) {
+        this.cuil = cuil;
         this.nombre = nombre;
         this.apellido = apellido;
-        this.cuil = cuil;
         this.email = email;
+    }
+
+    public Persona(Cuil cuil, String nombre) {
+        this.cuil = cuil;
+        this.nombre = nombre;
+    }
+
+    public Cuil getCuil() {
+        return cuil;
+    }
+
+    public void setCuil(Cuil cuil) {
+        this.cuil = cuil;
     }
 
     public String getNombre() {
@@ -27,14 +46,6 @@ public abstract class Persona {
 
     public void setApellido(String apellido) {
         this.apellido = apellido;
-    }
-
-    public String getCuil() {
-        return cuil;
-    }
-
-    public void setCuil(String cuil) {
-        this.cuil = cuil;
     }
 
     public String getEmail() {

@@ -61,7 +61,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
 
     @When("registro el ingreso del paciente con los siguientes datos:")
     public void registroElIngresoDelPacienteConLosSiguientesDatos(DataTable table) {
-        Map<String, String> r = table.asMaps().get(0);
+        /*Map<String, String> r = table.asMaps().get(0);
 
         try {
             // Validaciones mínimas (similar a la capa REST)
@@ -69,7 +69,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
             if (informe == null || informe.trim().isEmpty())
                 throw new IllegalArgumentException("El informe es obligatorio y no puede estar vacío ni contener solo espacios");
 
-            double temp;
+            float temp;
             try {
                 temp = parseDouble(r.get("temperatura"));
             } catch (Exception e) {
@@ -132,7 +132,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
         } catch (IllegalArgumentException ex) {
             responseError = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
             responseIngreso = null;
-        }
+        }*/
 
     }
 

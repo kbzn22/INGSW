@@ -1,17 +1,17 @@
 package com.grupo1.ingsw_app.domain;
 
 public class Temperatura {
-    private int temperatura;
+    private float temperatura;
 
-    public Temperatura(Double temperatura) {
+    public Temperatura(float temperatura) {
         this.temperatura = temperatura;
     }
 
-    public int getTemperatura() {
+    public float getTemperatura() {
         return temperatura;
     }
 
-    public void setTemperatura(int temperatura) {
+    public void setTemperatura(float temperatura) {
         this.temperatura = temperatura;
     }
 }

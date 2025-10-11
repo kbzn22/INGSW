@@ -1,7 +1,6 @@
 package com.grupo1.ingsw_app.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
@@ -49,14 +48,14 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
     public void los_pacientes_existen_en_el_sistema(DataTable dataTable) {
         repo.clear(); // limpiamos datos previos si existieran
         dataTable.asMaps().forEach(row -> {
-            Paciente paciente = new Paciente(row.get("dni"), row.get("nombre"));
+            Paciente paciente = new Paciente(row.get("cuil"), row.get("nombre"));
             repo.save(paciente);
         });
     }
 
-    @When("busco el paciente con dni {string}")
-    public void busco_el_paciente_con_dni(String dni) {
-        String url = "http://localhost:" + port + "/api/pacientes/" + dni;
+    @When("busco el paciente con cuil {string}")
+    public void busco_el_paciente_con_cuil(String cuil) {
+        String url = "http://localhost:" + port + "/api/pacientes/" + cuil;
 
         try {
             // Pedimos SIEMPRE la respuesta como String
@@ -82,7 +81,7 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
     public void el_sistema_me_muestra_el_paciente(DataTable dataTable) {
         // Obtenemos el paciente esperado
         Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
-        Paciente pacienteEsperado = new Paciente(fila.get("dni"), fila.get("nombre"));
+        Paciente pacienteEsperado = new Paciente(fila.get("cuil"), fila.get("nombre"));
 
         assertThat(responsePaciente.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responsePaciente.getBody()).isNotNull();
@@ -90,7 +89,7 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
         // Obtenemos el paciente devuelto por la API
         Paciente pacienteEncontrado = responsePaciente.getBody();
 
-        assertThat(pacienteEncontrado.getDni()).isEqualTo(pacienteEsperado.getDni());
+        assertThat(pacienteEncontrado.getCuil()).isEqualTo(pacienteEsperado.getCuil());
         assertThat(pacienteEncontrado.getNombre()).isEqualTo(pacienteEsperado.getNombre());
 
     }

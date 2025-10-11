@@ -16,11 +16,11 @@ public class PacienteController {
         this.service = service;
     }
 
-    @GetMapping("/{dni}")
-    public ResponseEntity<?> buscarPorDni(@PathVariable String dni) {
+    @GetMapping("/{cuil}")
+    public ResponseEntity<?> buscarPorCuil(@PathVariable String cuil) {
 
         try {
-            Paciente paciente = service.buscarPorDni(dni);
+            Paciente paciente = service.buscarPorCuil(cuil);
             return ResponseEntity.ok(paciente);
         } catch (IllegalArgumentException e) {
             return ResponseEntity
