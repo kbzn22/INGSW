@@ -4,10 +4,13 @@ Feature: Registro de admisiones en urgencias
   Quiero poder registrar las admisiones de los pacientes a urgencias
 #10 escenarios
   Background:
-    Given la enfermera está autenticada en el sistema
+    Given la enfermera siguiente enfermera está autenticada en el sistema
+    |Nombre|Apellido  |Cuil         |Matricula|
+    |Maria |Del Valle |20-30574930-4|ABC123|
+
     And existe en el sistema el paciente:
-      | dni      | nombre      |
-      | 44477310 | Enzo Juarez |
+      | cuil      | nombre      |
+      | 20-44477310-4 | Enzo Juarez |
     And existen las prioridades de emergencia:
       | nivel | color     | descripcion         |
       | 1     | Rojo      | Crítica             |

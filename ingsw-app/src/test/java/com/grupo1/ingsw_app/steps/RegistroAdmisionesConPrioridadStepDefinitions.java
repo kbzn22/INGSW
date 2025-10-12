@@ -1,6 +1,7 @@
 package com.grupo1.ingsw_app.steps;
 
 import com.grupo1.ingsw_app.domain.*;
+import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 import io.cucumber.datatable.DataTable;
@@ -40,6 +41,15 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
 
     private Paciente pacienteActual;
 
+    @Given("la enfermera siguiente enfermera está autenticada en el sistema")
+    public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
+    String nombre =table.asMap().get("nombre");
+    String apellido =table.asMap().get("apellido");
+    Cuil cuil = new Cuil(table.asMap().get("cuil"));
+    String matricula =table.asMap().get("matricula");
+    Enfermera enfermera = new Enfermera(cuil,nombre,apellido,matricula,"");
+
+    }
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
         pacienteRepo.clear();
@@ -171,4 +181,6 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
     @Then("el nuevo ingreso se ubica en la posición <posicion> de la cola de atención")
     public void elNuevoIngresoSeUbicaEnLaPosiciónPosicionDeLaColaDeAtención() {
     }
+
+
 }
