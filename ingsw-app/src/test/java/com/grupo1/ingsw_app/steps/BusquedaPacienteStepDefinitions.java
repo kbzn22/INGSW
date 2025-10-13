@@ -94,7 +94,7 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
 
     }
 
-    @Then("el sistema muestra un mensaje de error {string}")
+    @Then("el sistema muestra mensaje de error {string}")
     public void el_sistema_muestra_un_mensaje_de_error(String mensajeEsperado) {
         // Verificamos que haya una respuesta de error
         assertNotNull(responseError, "Se esperaba una respuesta de error pero fue nula");

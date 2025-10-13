@@ -5,32 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8443b11f-7644-4431-a243-01c617de6497" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/pom.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/Main.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/app/ServicioUrgencias.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/app/interfaces/RepositorioPacientes.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/domain/Enfermera.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/domain/EstadoIngreso.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/domain/Ingreso.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/domain/NivelEmergencia.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/main/java/org/example/domain/Paciente.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/test/java/mock/DBPruebaEnMemoria.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/test/java/moduloUrgenciasStepDefinitions.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/src/test/resources/moduloUrgencias.feature" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/Main.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/app/ServicioUrgencias.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/app/interfaces/RepositorioPacientes.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/domain/Enfermera.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/domain/EstadoIngreso.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/domain/Ingreso.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/domain/NivelEmergencia.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/classes/org/example/domain/Paciente.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/test-classes/mock/DBPruebaEnMemoria.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/test-classes/moduloUrgencias.feature" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClinicaEmergencias2025BDD/target/test-classes/moduloUrgenciasStepDefinitions.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,25 +43,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Modulo-de-urgencias&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/enzo/Proyectos/TrabajoIngenieriaDeSoftware/INGSW/ingsw-app&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "Modulo-de-urgencias",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/enzo/Proyectos/TrabajoIngenieriaDeSoftware/INGSW/ingsw-app",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "configurable.group.language",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -110,5 +86,20 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

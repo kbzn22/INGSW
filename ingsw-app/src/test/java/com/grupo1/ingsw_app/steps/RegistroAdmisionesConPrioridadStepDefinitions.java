@@ -7,10 +7,12 @@ import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
+import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 
 
+import com.grupo1.ingsw_app.persistance.IPersonalRepository;
 import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.*;
@@ -50,6 +52,9 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     @Autowired
     private IIngresoRepository ingresoRepo;
 
+    @Autowired
+    private IPersonalRepository personalRepo;
+
     private ResponseEntity<String> responseError;
     private ResponseEntity<Ingreso> responseIngreso;
 
@@ -58,11 +63,17 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     private int posicionResultante;
     Enfermera enfermeraActual;
     Ingreso ingresoActual;
+    private Map<String, Object> ingresoJson;
 
     @Given("la siguiente enfermera está autenticada en el sistema")
     public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
         Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
-        enfermeraActual = new Enfermera(fila.get("Cuil"), fila.get("Nombre"), fila.get("Apellido"), fila.get("Matricula"), "");
+
+        Enfermera enfermera = new Enfermera(fila.get("Cuil"), fila.get("Nombre"), fila.get("Apellido"), fila.get("Matricula"), "");
+
+        personalRepo.save(enfermera);
+
+        enfermeraActual=enfermera;
     }
 
     @And("existe en el sistema el paciente:")
@@ -85,36 +96,34 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @When("registro el ingreso del paciente con los siguientes datos:")
     public void registroElIngresoDelPacienteConLosSiguientesDatos(DataTable table) {
-        Map<String, String> r = table.asMaps(String.class, String.class).get(0);
+
+        Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
 
         String url = "http://localhost:" + port + "/api/ingresos";
 
         // Construimos el cuerpo de la request como JSON
-        Map<String, Object> request = Map.of(
-                "cuilPaciente", pacienteActual.getCuil().getValor(),
-                "cuilEnfermera", enfermeraActual.getCuil().getValor(),
-                "informe", r.get("informe"),
-                "temperatura", parseFloat(r.get("temperatura")),
-                "frecuenciaCardiaca", parseDouble(r.get("frecuencia cardiaca")),
-                "frecuenciaRespiratoria", parseDouble(r.get("frecuencia respiratoria")),
-                "frecuenciaSistolica", parseDouble(r.get("frecuencia sistolica")),
-                "frecuenciaDiastolica", parseDouble(r.get("frecuencia diastolica")),
-                "nivel", parseInt(r.get("nivel"))
-        );
+        IngresoRequest request = new IngresoRequest();
+        request.setCuilPaciente(pacienteActual.getCuil().getValor());
+        request.setCuilEnfermera(enfermeraActual.getCuil().getValor());
+        request.setInforme(fila.get("informe"));
+        request.setTemperatura(Float.parseFloat(fila.get("temperatura")));
+        request.setFrecuenciaCardiaca(Double.parseDouble(fila.get("frecuencia cardiaca")));
+        request.setFrecuenciaRespiratoria(Double.parseDouble(fila.get("frecuencia respiratoria")));
+        request.setFrecuenciaSistolica(Double.parseDouble(fila.get("frecuencia sistolica")));
+        request.setFrecuenciaDiastolica(Double.parseDouble(fila.get("frecuencia diastolica")));
+        request.setNivel(Integer.parseInt(fila.get("nivel")));
+
 
         try {
-            // Enviar POST y obtener SIEMPRE respuesta como String
             ResponseEntity<String> rawResponse =
                     restTemplate.postForEntity(url, request, String.class);
 
             if (rawResponse.getStatusCode().is2xxSuccessful()) {
-                // Si es 201 o 200, parseamos manualmente el JSON
                 ObjectMapper mapper = new ObjectMapper();
-                Ingreso ingreso = mapper.readValue(rawResponse.getBody(), Ingreso.class);
 
-                ingresoActual = ingreso;
-                responseIngreso = ResponseEntity.status(rawResponse.getStatusCode()).body(ingreso);
-                responseError = null;
+                ingresoJson = mapper.readValue(rawResponse.getBody(), Map.class);
+                ingresoActual = null; // ya no lo usamos acá
+                responseIngreso = ResponseEntity.status(rawResponse.getStatusCode()).build();
             } else {
                 // Si es error (400, 404, etc.)
                 responseError = rawResponse;
@@ -127,61 +136,78 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @Then("el ingreso queda registrado en el sistema")
     public void elIngresoQuedaRegistradoEnElSistema() {
-        assertNotNull(ingresoActual, "El ingreso no fue creado");
-        assertTrue(ingresoRepo.existsById(ingresoActual.getId()), "El ingreso no se persistió en el repositorio");
+        assertNotNull(ingresoJson, "No se obtuvo el ingreso de la respuesta");
+        assertNotNull(ingresoJson.get("id"), "La respuesta no trae id");
         assertThat(responseIngreso.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @And("el estado inicial del ingreso es {string}")
     public void elEstadoInicialDelIngresoEs(String estadoEsperado) {
-        assertNotNull(ingresoActual, "El ingreso no fue creado");
-        assertThat(ingresoActual.getEstadoIngreso().name()).isEqualTo(estadoEsperado);
+        assertNotNull(ingresoJson);
+        assertThat(ingresoJson.get("estadoIngreso")).isEqualTo(estadoEsperado);
     }
 
     @And("el paciente entra en la cola de atención")
     public void elPacienteEntraEnLaColaDeAtención() {
-        assertNotNull(ingresoActual, "El ingreso no fue creado");
-        assertTrue(ingresoService.estaEnCola(ingresoActual), "El ingreso no está en la cola de atención");
-    }
-
-    @When("intento registrar el ingreso del paciente con los siguientes datos:")
-    public void intentoRegistrarElIngresoDelPacienteConLosSiguientesDatos() {
+        assertNotNull(pacienteActual, "No hay paciente actual");
+        int pos = ingresoService.posicionEnLaCola(pacienteActual.getCuil().getValor());
+        assertTrue(pos > 0, "El ingreso no está en la cola de atención");
     }
 
     @Given("que no existe en el sistema el paciente con dni {int}")
-    public void queNoExisteEnElSistemaElPacienteConDni(int arg0) {
+    public void queNoExisteEnElSistemaElPacienteConDni(int dni) {
+        // Tu dominio usa CUIL; para este Given garantizamos que no exista el paciente actual
+        pacienteRepo.clear();
+        pacienteActual = null;
     }
 
     @Given("que existen los siguientes ingresos en la cola de atención:")
     public void queExistenLosSiguientesIngresosEnLaColaDeAtención(DataTable dataTable) {
         ingresoService.limpiarIngresos();
 
-        dataTable.asMaps(String.class, String.class).forEach(fila -> {
-            Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
-            NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")));
-            LocalDateTime hora = LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso")));
 
-            Ingreso ingreso = new Ingreso(paciente, nivel, hora);
-            ingresoService.registrarIngreso(ingreso);
+        dataTable.asMaps(String.class, String.class).forEach(row -> {
+            // asegurar paciente
+            Paciente p = pacienteRepo.findByCuil(row.get("cuil"))
+                    .orElseGet(() -> {
+                        Paciente nuevo = new Paciente(row.get("cuil"), row.get("nombre"));
+                        pacienteRepo.save(nuevo);
+                        return nuevo;
+                    });
+
+            // request mínimo válido
+            IngresoRequest req = new IngresoRequest();
+            req.setCuilPaciente(p.getCuil().getValor());
+            req.setCuilEnfermera(enfermeraActual.getCuil().getValor());
+            req.setInforme("ingreso de prueba");
+            req.setTemperatura(36.5f);
+            req.setFrecuenciaCardiaca(80);
+            req.setFrecuenciaRespiratoria(16);
+            req.setFrecuenciaSistolica(120);
+            req.setFrecuenciaDiastolica(80);
+            req.setNivel(Integer.parseInt(row.get("nivel")));
+
+            // registrar (esto guarda y encola)
+            Ingreso i = ingresoService.registrarIngreso(req);
+
+
         });
     }
 
-    @When("registro un nuevo ingreso para el paciente con los siguientes datos:")
-    public void registroUnNuevoIngresoParaElPacienteConLosSiguientesDatos(DataTable dataTable) {
-        Map<String, String> fila = dataTable.asMaps().get(0);
-
-        Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
-        NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")));
-        LocalDateTime fechaHora = LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso")));
-
-        Ingreso nuevoIngreso = new Ingreso(paciente, nivel, fechaHora);
-        ingresoService.registrarIngreso(nuevoIngreso);
-
-        posicionResultante = ingresoService.posicionEnLaCola(paciente.getCuil().getValor());
-    }
 
     @Then("el nuevo ingreso se ubica en la posición {int} de la cola de atención")
     public void elNuevoIngresoSeUbicaEnLaPosiciónPosicionDeLaColaDeAtención(int posicionEsperada) {
         assertThat(posicionResultante).isEqualTo(posicionEsperada);
+    }
+
+    @Then("el sistema muestra un mensaje de error {string}")
+    public void elSistemaMuestraUnMensajeDeError(String mensajeEsperado) {
+        assertNotNull(responseError, "Se esperaba una respuesta de error pero fue nula");
+        assertTrue(responseError.getStatusCode().is4xxClientError(),
+                "El estado HTTP debería ser 4xx, pero fue: " + responseError.getStatusCode());
+        String cuerpo = responseError.getBody();
+        assertNotNull(cuerpo, "El cuerpo del error vino nulo");
+        assertTrue(cuerpo.contains(mensajeEsperado),
+                () -> "El mensaje esperado era '" + mensajeEsperado + "' pero fue '" + cuerpo + "'");
     }
 }

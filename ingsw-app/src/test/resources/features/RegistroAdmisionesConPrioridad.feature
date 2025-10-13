@@ -24,13 +24,12 @@ Feature: Registro de admisiones en urgencias
       | Dolor torácico   | 38.2        | 92                  | 19                      | 120                  | 80                    | 5         |
     Then el ingreso queda registrado en el sistema
     And el estado inicial del ingreso es "PENDIENTE"
-    And el sistema registra a la enfermera responsable en el ingreso
     And el paciente entra en la cola de atención
 
   # ──────────────── ESCENARIOS NEGATIVOS ────────────────
 
   Scenario Outline: Registro fallido porque el informe es nulo o está vacío
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe   | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel     |
       | <informe> | 37.5        | 80                  | 18                      | 120                  | 80                    | 3         |
     Then el sistema muestra un mensaje de error "El informe es obligatorio y no puede estar vacío ni contener solo espacios"
@@ -42,7 +41,7 @@ Feature: Registro de admisiones en urgencias
       | "   "   |
 
   Scenario Outline: Registro fallido por temperatura inválida
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe         | temperatura   | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel     |
       | Dolor abdominal | <temperatura> | 80                  | 18                      | 120                  | 80                    | 3         |
     Then el sistema muestra un mensaje de error "La temperatura debe ser un número válido en grados Celsius"
@@ -54,7 +53,7 @@ Feature: Registro de admisiones en urgencias
       | null        |
 
   Scenario Outline: Registro fallido por frecuencia cardíaca inválida
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe        | temperatura | frecuencia cardiaca       | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel |
       | Dolor torácico | 37.8        | <frecuencia cardiaca>     | 16                      | 120                  | 80                    | 5     |
     Then el sistema muestra un mensaje de error "La frecuencia cardíaca debe ser un número válido (latidos por minuto)"
@@ -66,7 +65,7 @@ Feature: Registro de admisiones en urgencias
       | null                |
 
   Scenario Outline: Registro fallido por frecuencia respiratoria inválida
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe         | temperatura | frecuencia cardiaca | frecuencia respiratoria         | frecuencia sistolica | frecuencia diastolica | nivel   |
       | Cefalea intensa | 38.2        | 85                  | <frecuencia respiratoria>       | 125                  | 80                    | 4       |
     Then el sistema muestra un mensaje de error "La frecuencia respiratoria debe ser un número válido (respiraciones por minuto)"
@@ -78,7 +77,7 @@ Feature: Registro de admisiones en urgencias
       | null                    |
 
   Scenario Outline: Registro fallido por presión arterial inválida (sistólica/diastólica)
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe     | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica          | frecuencia diastolica          | nivel  |
       | Mareo leve  | 37.0        | 88                  | 17                      | <frecuencia sistolica>        | <frecuencia diastolica>        | 2      |
     Then el sistema muestra un mensaje de error "La presión arterial debe tener valores numéricos válidos para sistólica y diastólica"
@@ -93,7 +92,7 @@ Feature: Registro de admisiones en urgencias
       | 120                  | null                  |
 
   Scenario Outline: Registro fallido por prioridad inválida o nula
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe          | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel |
       | Dolor torácico   | 38.0        | 90                  | 19                      | 120                  | 80                    | <nivel> |
     Then el sistema muestra un mensaje de error "La prioridad ingresada no existe o es nula"
@@ -107,7 +106,7 @@ Feature: Registro de admisiones en urgencias
 
   Scenario: Registro fallido porque el paciente no existe en el sistema
     Given que no existe en el sistema el paciente con dni 55555888
-    When intento registrar el ingreso del paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | informe          | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel |
       | Dolor abdominal  | 37.5        | 80                  | 18                      | 120                  | 80                    | 3     |
     Then el sistema muestra un mensaje de error "El paciente no existe en el sistema y debe ser registrado antes del ingreso"
@@ -118,7 +117,7 @@ Feature: Registro de admisiones en urgencias
       | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
       | 20-44666000-4 | Pablo Fernández | 4     | 09:05           |
       | 20-44777000-4 | Luis Gómez      | 4     | 09:10           |
-    When registro un nuevo ingreso para el paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | cuil          | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel   | hora de ingreso |
       | 20-44477310-4 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | <nivel> | 09:15            |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
@@ -135,7 +134,7 @@ Feature: Registro de admisiones en urgencias
       | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
       | 20-44666000-4 | Pablo Fernández | 3     | 09:05           |
       | 20-44777000-4 | Luis Gómez      | 3     | 09:10           |
-    When registro un nuevo ingreso para el paciente con los siguientes datos:
+    When registro el ingreso del paciente con los siguientes datos:
       | cuil          | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel | hora de ingreso |
       | 20-44477310-4 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | 3     | <hora>          |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención

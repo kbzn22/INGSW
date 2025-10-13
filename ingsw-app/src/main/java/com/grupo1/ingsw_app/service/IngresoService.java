@@ -5,6 +5,7 @@ import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
+import com.grupo1.ingsw_app.persistance.IPersonalRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -14,37 +15,68 @@ public class IngresoService {
 
     private final IIngresoRepository repoIngreso;
     private final IPacienteRepository repoPaciente;
+    private final IPersonalRepository repoPersonal;
+    private final ColaAtencion cola=new ColaAtencion();
 
-    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente) {
+    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente,IPersonalRepository repoPersonal) {
         this.repoIngreso = repoIngreso;
         this.repoPaciente = repoPaciente;
+        this.repoPersonal =repoPersonal;
+;
+
     }
+
 
     public void limpiarIngresos() {
         repoIngreso.clear();
+        cola.limpiar();
     }
 
     public int posicionEnLaCola(String cuilPaciente) {
-        /*List<Ingreso> ingresosPendientes = repo.findByEstado("PENDIENTE");
-        ColaAtencion colaAtencion = new ColaAtencion();
-
-        for(Ingreso ingreso : ingresosPendientes) {
-            colaAtencion.agregar(ingreso);
-        }
-
-        return colaAtencion.posicionDe(cuilPaciente);*/
-        return 0;
+        return cola.posicionDe(cuilPaciente);
 
     }
 
     public Ingreso registrarIngreso(IngresoRequest req) {
-        Paciente paciente = repoPaciente.findByCuil(req.getCuilPaciente())
-                .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
-
-        Enfermera enfermera = repoEnfermera.findByCuil(req.getCuilEnfermera())
+        var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El paciente no existe en el sistema y debe ser registrado antes del ingreso"));
+        var enfermera = repoPersonal.findByCuil(req.getCuilEnfermera())
                 .orElseThrow(() -> new IllegalArgumentException("Enfermera no encontrada"));
 
-        NivelEmergencia nivel = NivelEmergencia.fromNumero(req.getNivel());
+        // --- Validaciones de campos (mensajes según tus escenarios) ---
+        if (req.getInforme() == null || req.getInforme().trim().isEmpty())
+            throw new IllegalArgumentException("El informe es obligatorio y no puede estar vacío ni contener solo espacios");
+
+        Float temp = req.getTemperatura();
+        if (temp == null || temp.isNaN() || temp.isInfinite() || temp < 0)
+            throw new IllegalArgumentException("La temperatura debe ser un número válido en grados Celsius");
+
+        Double fc = req.getFrecuenciaCardiaca();
+        if (fc == null || fc.isNaN() || fc.isInfinite())
+            throw new IllegalArgumentException("La frecuencia cardíaca debe ser un número válido (latidos por minuto)");
+        if (fc < 0)
+            throw new IllegalArgumentException("La frecuencia cardíaca no puede ser negativa");
+
+        Double fr = req.getFrecuenciaRespiratoria();
+        if (fr == null || fr.isNaN() || fr.isInfinite())
+            throw new IllegalArgumentException("La frecuencia respiratoria debe ser un número válido (respiraciones por minuto)");
+        if (fr < 0)
+            throw new IllegalArgumentException("La frecuencia respiratoria no puede ser negativa");
+
+        Double sist = req.getFrecuenciaSistolica();
+        Double diast = req.getFrecuenciaDiastolica();
+        if (sist == null || diast == null || sist.isNaN() || diast.isNaN()
+                || sist.isInfinite() || diast.isInfinite())
+            throw new IllegalArgumentException("La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
+        if (sist < 0 || diast < 0)
+            throw new IllegalArgumentException("La presión arterial no puede ser negativa");
+
+        Integer nivelNumero = req.getNivel();
+        if (nivelNumero == null || nivelNumero < 1 || nivelNumero > 5)
+            throw new IllegalArgumentException("La prioridad ingresada no existe o es nula");
+
+        var nivel = NivelEmergencia.fromNumero(nivelNumero);
 
         Ingreso ingreso = new Ingreso(paciente, enfermera, nivel);
         ingreso.setDescripcion(req.getInforme());
@@ -57,7 +89,12 @@ public class IngresoService {
         ));
 
         repoIngreso.save(ingreso);
+        cola.encolar(ingreso);
         return ingreso;
     }
+    public boolean estaEnCola(Ingreso i) {
+        return cola.contiene(i);
+    }
+
 
 }
