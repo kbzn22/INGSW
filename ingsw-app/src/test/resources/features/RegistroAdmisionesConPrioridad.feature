@@ -6,8 +6,8 @@ Feature: Registro de admisiones en urgencias
   Background:
     Given la enfermera está autenticada en el sistema
     And existe en el sistema el paciente:
-      | dni      | nombre      |
-      | 44477310 | Enzo Juarez |
+      | cuil           | nombre      |
+      | 20-44477310-4  | Enzo Juarez |
     And existen las prioridades de emergencia:
       | nivel | color     | descripcion         |
       | 1     | Rojo      | Crítica             |
@@ -112,13 +112,13 @@ Feature: Registro de admisiones en urgencias
 
   Scenario Outline: Reordenamiento de la cola según el nivel de prioridad del nuevo ingreso
     Given que existen los siguientes ingresos en la cola de atención:
-      | dni      | nombre          | nivel | hora de ingreso |
-      | 44555000 | Laura Medina    | 2     | 09:00           |
-      | 44666000 | Pablo Fernández | 4     | 09:05           |
-      | 44777000 | Luis Gómez      | 4     | 09:10           |
+      | cuil          | nombre          | nivel | hora de ingreso |
+      | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
+      | 20-44666000-4 | Pablo Fernández | 4     | 09:05           |
+      | 20-44777000-4 | Luis Gómez      | 4     | 09:10           |
     When registro un nuevo ingreso para el paciente con los siguientes datos:
-      | dni      | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel   | hora de ingreso |
-      | 44477310 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | <nivel> | 09:15            |
+      | cuil          | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel   | hora de ingreso |
+      | 20-44477310-4 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | <nivel> | 09:15            |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
 
     Examples:
@@ -129,13 +129,13 @@ Feature: Registro de admisiones en urgencias
 
   Scenario Outline: Desempate en la cola de atención entre pacientes con el mismo nivel de prioridad
     Given que existen los siguientes ingresos en la cola de atención:
-      | dni      | nombre          | nivel | hora de ingreso |
-      | 44555000 | Laura Medina    | 2     | 09:00           |
-      | 44666000 | Pablo Fernández | 3     | 09:05           |
-      | 44777000 | Luis Gómez      | 3     | 09:10           |
+      | cuil           | nombre          | nivel | hora de ingreso |
+      | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
+      | 20-44666000-4 | Pablo Fernández | 3     | 09:05           |
+      | 20-44777000-4 | Luis Gómez      | 3     | 09:10           |
     When registro un nuevo ingreso para el paciente con los siguientes datos:
-      | dni      | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel | hora de ingreso |
-      | 44477310 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | 3     | <hora>          |
+      | cuil          | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel | hora de ingreso |
+      | 20-44477310-4 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | 3     | <hora>          |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
 
     Examples:
@@ -143,5 +143,3 @@ Feature: Registro de admisiones en urgencias
       | 09:04  | 2        |
       | 09:07  | 3        |
       | 09:12  | 4        |
-
-# no toquen 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

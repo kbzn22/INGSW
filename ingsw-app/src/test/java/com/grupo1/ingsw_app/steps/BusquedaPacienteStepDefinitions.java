@@ -47,8 +47,8 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
     @Given("los pacientes existen en el sistema:")
     public void los_pacientes_existen_en_el_sistema(DataTable dataTable) {
         repo.clear(); // limpiamos datos previos si existieran
-        dataTable.asMaps().forEach(row -> {
-            Paciente paciente = new Paciente(row.get("cuil"), row.get("nombre"));
+        dataTable.asMaps().forEach(fila -> {
+            Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
             repo.save(paciente);
         });
     }

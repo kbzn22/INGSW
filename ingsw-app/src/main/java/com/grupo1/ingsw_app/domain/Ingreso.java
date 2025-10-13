@@ -1,5 +1,10 @@
 package com.grupo1.ingsw_app.domain;
 
+import com.grupo1.ingsw_app.domain.valueobjects.FrecuenciaCardiaca;
+import com.grupo1.ingsw_app.domain.valueobjects.FrecuenciaRespiratoria;
+import com.grupo1.ingsw_app.domain.valueobjects.Temperatura;
+import com.grupo1.ingsw_app.domain.valueobjects.TensionArterial;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -21,6 +26,13 @@ public class Ingreso {
         this.paciente = paciente;
         this.enfermera = enfermera;
         this.nivelEmergencia = nivelEmergencia;
+        this.id = UUID.randomUUID();
+    }
+
+    public Ingreso(Paciente paciente, NivelEmergencia nivelEmergencia, LocalDateTime fechaIngreso) {
+        this.paciente = paciente;
+        this.nivelEmergencia = nivelEmergencia;
+        this.fechaIngreso = fechaIngreso;
         this.id = UUID.randomUUID();
     }
 

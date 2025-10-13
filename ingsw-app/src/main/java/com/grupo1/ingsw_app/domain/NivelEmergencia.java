@@ -1,5 +1,7 @@
 package com.grupo1.ingsw_app.domain;
 
+import com.grupo1.ingsw_app.domain.valueobjects.Nivel;
+
 import java.time.Duration;
 
 /** Enum asociado 1–1 a un Nivel estático (no necesita repositorio). */
@@ -11,13 +13,23 @@ public enum NivelEmergencia {
     SIN_URGENCIA(new Nivel(5, "Azul",       Duration.ofHours(2)));
 
     private final Nivel nivel;
-    NivelEmergencia(Nivel nivel) { this.nivel = nivel; }
-    public Nivel getNivel() { return nivel; }
 
-    /** Utilidad: buscar por número de nivel (1..5). */
+    NivelEmergencia(Nivel nivel) {
+        this.nivel = nivel;
+    }
+
+    public Nivel getNivel() {
+        return nivel;
+    }
+
+    public int getNumero() {
+        return nivel.getNivel();
+    }
+
+    // Utilidad: buscar por número de nivel (1..5).
     public static NivelEmergencia fromNumero(int numero) {
         for (NivelEmergencia ne : values()) {
-            if (ne.getNivel().getNivel() == numero) return ne;
+            if (ne.getNumero() == numero) return ne;
         }
         throw new IllegalArgumentException("Nivel de emergencia inválido: " + numero);
     }

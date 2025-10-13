@@ -4,10 +4,8 @@ import com.grupo1.ingsw_app.domain.Paciente;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
-/**public PacienteService(IPacienteRepository repo) {
-        this.repo = repo;
-    }
- * Repositorio en memoria para gestionar pacientes.
+
+/* Repositorio en memoria para gestionar pacientes.
  * Cumple la interfaz de persistencia mínima para los tests de BDD.
  */
 @Repository

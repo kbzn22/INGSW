@@ -1,8 +1,14 @@
 package com.grupo1.ingsw_app.steps;
 
-import com.grupo1.ingsw_app.domain.*;
+
+import com.grupo1.ingsw_app.domain.Ingreso;
+import com.grupo1.ingsw_app.domain.NivelEmergencia;
+import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
+
+
+import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -14,6 +20,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Map;
 
 import static java.lang.Double.parseDouble;
@@ -30,6 +39,9 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
     private TestRestTemplate restTemplate;
 
     @Autowired
+    private IngresoService ingresoService;
+
+    @Autowired
     private IPacienteRepository pacienteRepo;
 
     @Autowired
@@ -39,12 +51,14 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
     private ResponseEntity<Ingreso> responseIngreso;
 
     private Paciente pacienteActual;
+    private LocalDate fechaBase = LocalDate.of(2025, 10, 12);
+    private int posicionResultante;
 
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
         pacienteRepo.clear();
-        Map<String, String> fila = dataTable.asMaps().get(0);
-        Paciente p = new Paciente(fila.get("dni"), fila.get("nombre"));
+        Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
+        Paciente p = new Paciente(fila.get("cuil"), fila.get("nombre"));
         pacienteRepo.save(p);
         pacienteActual = p;
     }
@@ -56,7 +70,6 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
             NivelEmergencia ne = NivelEmergencia.fromNumero(nivelNum);
             assertThat(ne.getNivel().getNombre()).isNotEmpty();
         });
-
     }
 
     @When("registro el ingreso del paciente con los siguientes datos:")
@@ -161,14 +174,35 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
     }
 
     @Given("que existen los siguientes ingresos en la cola de atención:")
-    public void queExistenLosSiguientesIngresosEnLaColaDeAtención() {
+    public void queExistenLosSiguientesIngresosEnLaColaDeAtención(DataTable dataTable) {
+        ingresoService.limpiarIngresos();
+
+        dataTable.asMaps(String.class, String.class).forEach(fila -> {
+            Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
+            NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")));
+            LocalDateTime hora = LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso")));
+
+            Ingreso ingreso = new Ingreso(paciente, nivel, hora);
+            ingresoService.registrarIngreso(ingreso);
+        });
     }
 
     @When("registro un nuevo ingreso para el paciente con los siguientes datos:")
-    public void registroUnNuevoIngresoParaElPacienteConLosSiguientesDatos() {
+    public void registroUnNuevoIngresoParaElPacienteConLosSiguientesDatos(DataTable dataTable) {
+        Map<String, String> fila = dataTable.asMaps().get(0);
+
+        Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
+        NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")));
+        LocalDateTime fechaHora = LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso")));
+
+        Ingreso nuevoIngreso = new Ingreso(paciente, nivel, fechaHora);
+        ingresoService.registrarIngreso(nuevoIngreso);
+
+        posicionResultante = ingresoService.posicionEnLaCola(paciente.getCuil().getValor());
     }
 
-    @Then("el nuevo ingreso se ubica en la posición <posicion> de la cola de atención")
-    public void elNuevoIngresoSeUbicaEnLaPosiciónPosicionDeLaColaDeAtención() {
+    @Then("el nuevo ingreso se ubica en la posición {int} de la cola de atención")
+    public void elNuevoIngresoSeUbicaEnLaPosiciónPosicionDeLaColaDeAtención(int posicionEsperada) {
+        assertThat(posicionResultante).isEqualTo(posicionEsperada);
     }
 }
