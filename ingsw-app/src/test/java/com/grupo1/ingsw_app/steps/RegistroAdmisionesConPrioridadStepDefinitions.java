@@ -1,6 +1,7 @@
 package com.grupo1.ingsw_app.steps;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupo1.ingsw_app.domain.Enfermera;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
@@ -58,19 +59,12 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     Enfermera enfermeraActual;
     Ingreso ingresoActual;
 
-    @Given("la enfermera siguiente enfermera está autenticada en el sistema")
+    @Given("la siguiente enfermera está autenticada en el sistema")
     public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
-        Map<String, String> row = table.asMaps(String.class, String.class).get(0);
-
-        String nombre    = row.get("Nombre");
-        String apellido  = row.get("Apellido");
-        Cuil cuil        = new Cuil(row.get("Cuil"));
-        String matricula = row.get("Matricula");
-
-
-        enfermeraActual = new Enfermera(cuil, nombre, apellido, matricula, "");
-
+        Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
+        enfermeraActual = new Enfermera(fila.get("Cuil"), fila.get("Nombre"), fila.get("Apellido"), fila.get("Matricula"), "");
     }
+
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
         pacienteRepo.clear();
@@ -87,35 +81,48 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
             NivelEmergencia ne = NivelEmergencia.fromNumero(nivelNum);
             assertThat(ne.getNivel().getNombre()).isNotEmpty();
         });
-
     }
 
     @When("registro el ingreso del paciente con los siguientes datos:")
     public void registroElIngresoDelPacienteConLosSiguientesDatos(DataTable table) {
-        ingresoRepo.clear();
-
         Map<String, String> r = table.asMaps(String.class, String.class).get(0);
-        NivelEmergencia nivelEmergencia = NivelEmergencia.fromNumero(parseInt(r.get("nivel")));
 
-        Ingreso ingreso = new Ingreso(pacienteActual, enfermeraActual, nivelEmergencia);
-        ingreso.setFrecuenciaCardiaca(new FrecuenciaCardiaca(parseDouble(r.get("frecuencia cardiaca"))));
-        ingreso.setFrecuenciaRespiratoria(new FrecuenciaRespiratoria(parseDouble(r.get("frecuencia respiratoria"))));
-        ingreso.setTensionArterial(new TensionArterial(
-                new Frecuencia(parseDouble(r.get("frecuencia sistolica"))),
-                new Frecuencia(parseDouble(r.get("frecuencia diastolica")))
-        ));
-        ingreso.setTemperatura(new Temperatura(parseFloat(r.get("temperatura"))));
-        ingreso.setDescripcion(r.get("informe"));
-        try{
-            ingresoRepo.save(ingreso);
-            responseIngreso = ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
-            responseError = null;
+        String url = "http://localhost:" + port + "/api/ingresos";
 
-        } catch (IllegalArgumentException ex) {
-            responseError = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-            responseIngreso = null;
+        // Construimos el cuerpo de la request como JSON
+        Map<String, Object> request = Map.of(
+                "cuilPaciente", pacienteActual.getCuil().getValor(),
+                "cuilEnfermera", enfermeraActual.getCuil().getValor(),
+                "informe", r.get("informe"),
+                "temperatura", parseFloat(r.get("temperatura")),
+                "frecuenciaCardiaca", parseDouble(r.get("frecuencia cardiaca")),
+                "frecuenciaRespiratoria", parseDouble(r.get("frecuencia respiratoria")),
+                "frecuenciaSistolica", parseDouble(r.get("frecuencia sistolica")),
+                "frecuenciaDiastolica", parseDouble(r.get("frecuencia diastolica")),
+                "nivel", parseInt(r.get("nivel"))
+        );
+
+        try {
+            // Enviar POST y obtener SIEMPRE respuesta como String
+            ResponseEntity<String> rawResponse =
+                    restTemplate.postForEntity(url, request, String.class);
+
+            if (rawResponse.getStatusCode().is2xxSuccessful()) {
+                // Si es 201 o 200, parseamos manualmente el JSON
+                ObjectMapper mapper = new ObjectMapper();
+                Ingreso ingreso = mapper.readValue(rawResponse.getBody(), Ingreso.class);
+
+                ingresoActual = ingreso;
+                responseIngreso = ResponseEntity.status(rawResponse.getStatusCode()).body(ingreso);
+                responseError = null;
+            } else {
+                // Si es error (400, 404, etc.)
+                responseError = rawResponse;
+                responseIngreso = null;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error durante la llamada al endpoint de registro de ingreso", e);
         }
-
     }
 
     @Then("el ingreso queda registrado en el sistema")
@@ -134,7 +141,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     @And("el paciente entra en la cola de atención")
     public void elPacienteEntraEnLaColaDeAtención() {
         assertNotNull(ingresoActual, "El ingreso no fue creado");
-        assertTrue(ingresoRepo.estaEnCola(ingresoActual), "El ingreso no está en la cola de atención");
+        assertTrue(ingresoService.estaEnCola(ingresoActual), "El ingreso no está en la cola de atención");
     }
 
     @When("intento registrar el ingreso del paciente con los siguientes datos:")
