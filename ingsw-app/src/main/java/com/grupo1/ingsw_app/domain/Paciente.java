@@ -1,17 +1,18 @@
-public class Paciente {
-    int dni;
-    String nombre;
-    // para usar el dataTable necesitas crear constructor vacio noseporq
-    public Paciente() {}
-    public String getDni() { return dni; }
-    public void setDni(String dni) { this.dni = dni; }
+package com.grupo1.ingsw_app.domain;
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public Paciente(String nombreCompleto, int dni) {
-        this.nombreCompleto = nombreCompleto;
-        this.dni = dni;
+import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
+
+public class Paciente extends Persona {
+
+    public Paciente (){
     }
+
+    public Paciente(String cuil, String nombre) {
+        super(new Cuil(cuil), nombre);
+    }
+
+    /*
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -24,7 +25,6 @@ public class Paciente {
     @Override
     public int hashCode() {
         return Objects.hash(dni, nombre);
-    }
-
+    }*/
 
 }
