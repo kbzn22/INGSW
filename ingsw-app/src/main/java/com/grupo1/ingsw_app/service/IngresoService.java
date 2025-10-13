@@ -21,14 +21,16 @@ public class IngresoService {
     }
 
     public int posicionEnLaCola(String cuilPaciente) {
-        List<Ingreso> ingresosPendientes = repo.findByEstado("PENDIENTE");
+        /*List<Ingreso> ingresosPendientes = repo.findByEstado("PENDIENTE");
         ColaAtencion colaAtencion = new ColaAtencion();
 
         for(Ingreso ingreso : ingresosPendientes) {
             colaAtencion.agregar(ingreso);
         }
 
-        return colaAtencion.posicionDe(cuilPaciente);
+        return colaAtencion.posicionDe(cuilPaciente);*/
+        return 0;
+
     }
 
     public void registrarIngreso(Ingreso ingreso) {

@@ -1,19 +1,18 @@
 package com.grupo1.ingsw_app.steps;
 
 
+import com.grupo1.ingsw_app.domain.Enfermera;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.Paciente;
+import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 
 
 import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -26,10 +25,13 @@ import java.time.LocalTime;
 import java.util.Map;
 
 import static java.lang.Double.parseDouble;
+import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RegistroAdmisionesConPrioridadStepDefinitions {
+public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSpringConfiguration {
 
 
     @LocalServerPort
@@ -53,7 +55,22 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
     private Paciente pacienteActual;
     private LocalDate fechaBase = LocalDate.of(2025, 10, 12);
     private int posicionResultante;
+    Enfermera enfermeraActual;
+    Ingreso ingresoActual;
 
+    @Given("la enfermera siguiente enfermera está autenticada en el sistema")
+    public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
+        Map<String, String> row = table.asMaps(String.class, String.class).get(0);
+
+        String nombre    = row.get("Nombre");
+        String apellido  = row.get("Apellido");
+        Cuil cuil        = new Cuil(row.get("Cuil"));
+        String matricula = row.get("Matricula");
+
+
+        enfermeraActual = new Enfermera(cuil, nombre, apellido, matricula, "");
+
+    }
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
         pacienteRepo.clear();
@@ -70,74 +87,26 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
             NivelEmergencia ne = NivelEmergencia.fromNumero(nivelNum);
             assertThat(ne.getNivel().getNombre()).isNotEmpty();
         });
+
     }
 
     @When("registro el ingreso del paciente con los siguientes datos:")
     public void registroElIngresoDelPacienteConLosSiguientesDatos(DataTable table) {
-        /*Map<String, String> r = table.asMaps().get(0);
+        ingresoRepo.clear();
 
-        try {
-            // Validaciones mínimas (similar a la capa REST)
-            String informe = r.get("informe");
-            if (informe == null || informe.trim().isEmpty())
-                throw new IllegalArgumentException("El informe es obligatorio y no puede estar vacío ni contener solo espacios");
+        Map<String, String> r = table.asMaps(String.class, String.class).get(0);
+        NivelEmergencia nivelEmergencia = NivelEmergencia.fromNumero(parseInt(r.get("nivel")));
 
-            float temp;
-            try {
-                temp = parseDouble(r.get("temperatura"));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("La temperatura debe ser un número válido en grados Celsius");
-            }
-
-            double fc;
-            try {
-                fc = parseDouble(r.get("frecuencia cardiaca"));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("La frecuencia cardíaca debe ser un número válido (latidos por minuto)");
-            }
-
-            double fr;
-            try {
-                fr = parseDouble(r.get("frecuencia respiratoria"));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("La frecuencia respiratoria debe ser un número válido (respiraciones por minuto)");
-            }
-
-            double fsis;
-            try {
-                fsis = parseDouble(r.get("frecuencia sistolica"));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
-            }
-
-            double fdia;
-            try {
-                fdia = parseDouble(r.get("frecuencia diastolica"));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
-            }
-
-            int nivelN;
-            try {
-                nivelN = parseInt(r.get("nivel"));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("La prioridad ingresada no existe o es nula");
-            }
-
-
-            if (temp < 0 || fc < 0 || fr < 0 || fsis < 0 || fdia < 0)
-                throw new IllegalArgumentException("Los signos vitales no pueden ser negativos");
-
-            NivelEmergencia ne = NivelEmergencia.fromNumero(nivelN);
-
-            // Construcción del ingreso (sin HTTP, directo al repo)
-            Ingreso ingreso = new Ingreso(pacienteActual, new Enfermera("Susana","Gimenez","20-12345604-4", "ahahaha@gmail.com","ENF-001"), ne);
-            ingreso.setDescripcion(informe);
-            ingreso.setTemperatura(new Temperatura(temp));
-            ingreso.setFrecuenciaCardiaca(new FrecuenciaCardiaca(fc));
-            ingreso.setFrecuenciaRespiratoria(new FrecuenciaRespiratoria(fr));
-            ingreso.setTensionArterial(new TensionArterial(new Frecuencia(fsis), new Frecuencia(fdia)));
-
+        Ingreso ingreso = new Ingreso(pacienteActual, enfermeraActual, nivelEmergencia);
+        ingreso.setFrecuenciaCardiaca(new FrecuenciaCardiaca(parseDouble(r.get("frecuencia cardiaca"))));
+        ingreso.setFrecuenciaRespiratoria(new FrecuenciaRespiratoria(parseDouble(r.get("frecuencia respiratoria"))));
+        ingreso.setTensionArterial(new TensionArterial(
+                new Frecuencia(parseDouble(r.get("frecuencia sistolica"))),
+                new Frecuencia(parseDouble(r.get("frecuencia diastolica")))
+        ));
+        ingreso.setTemperatura(new Temperatura(parseFloat(r.get("temperatura"))));
+        ingreso.setDescripcion(r.get("informe"));
+        try{
             ingresoRepo.save(ingreso);
             responseIngreso = ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
             responseError = null;
@@ -145,24 +114,27 @@ public class RegistroAdmisionesConPrioridadStepDefinitions {
         } catch (IllegalArgumentException ex) {
             responseError = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
             responseIngreso = null;
-        }*/
+        }
 
     }
 
     @Then("el ingreso queda registrado en el sistema")
     public void elIngresoQuedaRegistradoEnElSistema() {
+        assertNotNull(ingresoActual, "El ingreso no fue creado");
+        assertTrue(ingresoRepo.existsById(ingresoActual.getId()), "El ingreso no se persistió en el repositorio");
+        assertThat(responseIngreso.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @And("el estado inicial del ingreso es {string}")
-    public void elEstadoInicialDelIngresoEs(String arg0) {
-    }
-
-    @And("el sistema registra a la enfermera responsable en el ingreso")
-    public void elSistemaRegistraALaEnfermeraResponsableEnElIngreso() {
+    public void elEstadoInicialDelIngresoEs(String estadoEsperado) {
+        assertNotNull(ingresoActual, "El ingreso no fue creado");
+        assertThat(ingresoActual.getEstadoIngreso().name()).isEqualTo(estadoEsperado);
     }
 
     @And("el paciente entra en la cola de atención")
     public void elPacienteEntraEnLaColaDeAtención() {
+        assertNotNull(ingresoActual, "El ingreso no fue creado");
+        assertTrue(ingresoRepo.estaEnCola(ingresoActual), "El ingreso no está en la cola de atención");
     }
 
     @When("intento registrar el ingreso del paciente con los siguientes datos:")

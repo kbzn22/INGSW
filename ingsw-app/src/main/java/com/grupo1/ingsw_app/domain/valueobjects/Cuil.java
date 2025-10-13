@@ -11,7 +11,7 @@ public final class Cuil {
 
     @JsonCreator
     public Cuil(String valor) {
-        if (valor == null || valor.isBlank() || !valor.matches("\\d{2}-\\d{8}-\\d{1}")) {
+        if (valor == null || valor.isBlank() || !valor.trim().matches("\\d{2}-\\d{8}-\\d{1}")) {
             throw new IllegalArgumentException("CUIL inválido");
         }
 

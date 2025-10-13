@@ -18,6 +18,12 @@ public abstract class Persona {
         this.apellido = apellido;
         this.email = email;
     }
+    public Persona(Cuil cuil, String nombre, String apellido) {
+        this.cuil = cuil;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.email = "";
+    }
 
     public Persona(Cuil cuil, String nombre) {
         this.cuil = cuil;
