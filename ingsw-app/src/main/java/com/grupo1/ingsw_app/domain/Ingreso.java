@@ -9,7 +9,7 @@ public class Ingreso {
     UUID id;
     Enfermera enfermera;
     NivelEmergencia nivelEmergencia;
-    EstadoIngreso estadoIngreso;
+    EstadoIngreso estadoIngreso=EstadoIngreso.PENDIENTE;
     String descripcion;
     LocalDateTime fechaIngreso = LocalDateTime.now();
     Temperatura temperatura;

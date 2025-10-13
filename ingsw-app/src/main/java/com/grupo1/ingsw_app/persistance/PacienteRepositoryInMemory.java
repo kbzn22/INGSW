@@ -25,10 +25,7 @@ public class PacienteRepositoryInMemory implements IPacienteRepository {
         data.put(paciente.getCuil().getValor(), paciente);
     }
 
-   /* @Override
-    public List<Paciente> findAll() {
-        return new ArrayList<>(data.values());
-    }*/
+
 
     public void clear() {
         data.clear();

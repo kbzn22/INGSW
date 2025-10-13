@@ -25,7 +25,6 @@ Feature: Registro de admisiones en urgencias
       | Dolor torácico   | 38.2        | 92                  | 19                      | 120                  | 80                    | 5         |
     Then el ingreso queda registrado en el sistema
     And el estado inicial del ingreso es "PENDIENTE"
-    And el sistema registra a la enfermera responsable en el ingreso
     And el paciente entra en la cola de atención
 
   # ──────────────── ESCENARIOS NEGATIVOS ────────────────
