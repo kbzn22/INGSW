@@ -5,16 +5,21 @@ import java.util.stream.IntStream;
 
 public class ColaAtencion {
 
-    private final List<Ingreso> ingresosEnCola = new ArrayList<>();
+    private List<Ingreso> ingresosEnCola = new ArrayList<>();
 
-    public void limpiar() { ingresosEnCola.clear(); }
+    public void limpiar() {
+        ingresosEnCola.clear();
+    }
 
     public void encolar(Ingreso ingreso) {
         ingresosEnCola.add(ingreso);
         ordenar();
     }
 
-    public boolean contiene(Ingreso ingreso) { return ingresosEnCola.contains(ingreso); }
+    public boolean estaElPaciente(String cuil) {
+        return ingresosEnCola.stream()
+                .anyMatch(i -> i.getPaciente().getCuil().getValor().equals(cuil));
+    }
 
     public int posicionDe(String cuilPaciente) {
         int idx = IntStream.range(0, ingresosEnCola.size())

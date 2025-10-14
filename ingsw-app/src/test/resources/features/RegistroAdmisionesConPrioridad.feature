@@ -5,18 +5,11 @@ Feature: Registro de admisiones en urgencias
 #10 escenarios
   Background:
     Given la siguiente enfermera está autenticada en el sistema
-    |Nombre|Apellido  |Cuil         |Matricula|
-    |Maria |Del Valle |20-30574930-4|ABC123|
+    |  cuil         | nombre | apellido  | Matricula |
+    | 20-30574930-4 | Maria  | Del Valle | ABC123    |
     And existe en el sistema el paciente:
-      | cuil           | nombre      |
-      | 20-44477310-4  | Enzo Juarez |
-    And existen las prioridades de emergencia:
-      | nivel | color     | descripcion         |
-      | 1     | Rojo      | Crítica             |
-      | 2     | Naranja   | Emergencia          |
-      | 3     | Amarillo  | Urgencia            |
-      | 4     | Verde     | Urgencia menor      |
-      | 5     | Azul      | Sin urgencia        |
+      | cuil           | nombre |
+      | 20-44477310-4  | Enzo   |
 
   Scenario: Registro exitoso de admisión de un paciente existente
     When registro el ingreso del paciente con los siguientes datos:
@@ -117,9 +110,9 @@ Feature: Registro de admisiones en urgencias
       | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
       | 20-44666000-4 | Pablo Fernández | 4     | 09:05           |
       | 20-44777000-4 | Luis Gómez      | 4     | 09:10           |
-    When registro el ingreso del paciente con los siguientes datos:
-      | cuil          | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel   | hora de ingreso |
-      | 20-44477310-4 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | <nivel> | 09:15            |
+    When ingresa a la cola el paciente con los siguientes datos:
+      | cuil          | nombre      | nivel   | hora de ingreso |
+      | 20-44477310-4 | Enzo Juarez | <nivel> | 09:15           |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
 
     Examples:
@@ -134,9 +127,9 @@ Feature: Registro de admisiones en urgencias
       | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
       | 20-44666000-4 | Pablo Fernández | 3     | 09:05           |
       | 20-44777000-4 | Luis Gómez      | 3     | 09:10           |
-    When registro el ingreso del paciente con los siguientes datos:
-      | cuil          | nombre      | informe        | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel | hora de ingreso |
-      | 20-44477310-4 | Enzo Juarez | Dolor torácico | 38.5        | 95                  | 20                      | 130                  | 85                    | 3     | <hora>          |
+    When ingresa a la cola el paciente con los siguientes datos:
+      | cuil          | nombre      | informe        | nivel | hora de ingreso |
+      | 20-44477310-4 | Enzo Juarez | Dolor torácico | 3     | <hora>          |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
 
     Examples:

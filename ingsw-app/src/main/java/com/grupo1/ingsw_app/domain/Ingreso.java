@@ -29,13 +29,6 @@ public class Ingreso {
         this.id = UUID.randomUUID();
     }
 
-    public Ingreso(Paciente paciente, NivelEmergencia nivelEmergencia, LocalDateTime fechaIngreso) {
-        this.paciente = paciente;
-        this.nivelEmergencia = nivelEmergencia;
-        this.fechaIngreso = fechaIngreso;
-        this.id = UUID.randomUUID();
-    }
-
     public Atencion getAtencion() {
         return atencion;
     }

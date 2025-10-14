@@ -2,17 +2,11 @@ package com.grupo1.ingsw_app.steps;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grupo1.ingsw_app.domain.Enfermera;
-import com.grupo1.ingsw_app.domain.Ingreso;
-import com.grupo1.ingsw_app.domain.NivelEmergencia;
-import com.grupo1.ingsw_app.domain.Paciente;
-import com.grupo1.ingsw_app.domain.valueobjects.*;
+import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
-
-
-import com.grupo1.ingsw_app.persistance.IPersonalRepository;
+import com.grupo1.ingsw_app.security.SesionActual;
 import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.*;
@@ -27,9 +21,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
 
-import static java.lang.Double.parseDouble;
-import static java.lang.Float.parseFloat;
-import static java.lang.Integer.parseInt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,45 +44,42 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     private IIngresoRepository ingresoRepo;
 
     @Autowired
-    private IPersonalRepository personalRepo;
+    private SesionActual sesionActual;
 
     private ResponseEntity<String> responseError;
     private ResponseEntity<Ingreso> responseIngreso;
 
     private Paciente pacienteActual;
-    private LocalDate fechaBase = LocalDate.of(2025, 10, 12);
+    private Enfermera enfermeraActual;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final LocalDate fechaBase = LocalDate.of(2025, 10, 12);
+    private ColaAtencion cola = new ColaAtencion();
     private int posicionResultante;
-    Enfermera enfermeraActual;
-    Ingreso ingresoActual;
+
+    private Ingreso ingresoActual;
     private Map<String, Object> ingresoJson;
 
     @Given("la siguiente enfermera está autenticada en el sistema")
     public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
         Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
-
-        Enfermera enfermera = new Enfermera(fila.get("Cuil"), fila.get("Nombre"), fila.get("Apellido"), fila.get("Matricula"), "");
-
-        personalRepo.save(enfermera);
-
-        enfermeraActual=enfermera;
+        Enfermera enfermera = new Enfermera(
+                fila.get("cuil"),
+                fila.get("nombre"),
+                fila.get("apellido"),
+                fila.get("matricula"),
+                "");
+        sesionActual.setEnfermeraActual(enfermera);
+        enfermeraActual = enfermera;
     }
 
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
         pacienteRepo.clear();
         Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
-        Paciente p = new Paciente(fila.get("cuil"), fila.get("nombre"));
-        pacienteRepo.save(p);
-        pacienteActual = p;
-    }
-
-    @And("existen las prioridades de emergencia:")
-    public void existenLasPrioridadesDeEmergencia(DataTable dataTable) {
-        dataTable.asMaps().forEach(row -> {
-            int nivelNum = parseInt(row.get("nivel"));
-            NivelEmergencia ne = NivelEmergencia.fromNumero(nivelNum);
-            assertThat(ne.getNivel().getNombre()).isNotEmpty();
-        });
+        Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
+        pacienteRepo.save(paciente);
+        pacienteActual = paciente;
     }
 
     @When("registro el ingreso del paciente con los siguientes datos:")
@@ -113,17 +101,17 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
         request.setFrecuenciaDiastolica(Double.parseDouble(fila.get("frecuencia diastolica")));
         request.setNivel(Integer.parseInt(fila.get("nivel")));
 
-
         try {
             ResponseEntity<String> rawResponse =
                     restTemplate.postForEntity(url, request, String.class);
+            System.out.println("Código HTTP devuelto: " + rawResponse.getStatusCode());
+            System.out.println("Body: " + rawResponse.getBody());
 
             if (rawResponse.getStatusCode().is2xxSuccessful()) {
-                ObjectMapper mapper = new ObjectMapper();
 
                 ingresoJson = mapper.readValue(rawResponse.getBody(), Map.class);
-                ingresoActual = null; // ya no lo usamos acá
                 responseIngreso = ResponseEntity.status(rawResponse.getStatusCode()).build();
+                responseError = null;
             } else {
                 // Si es error (400, 404, etc.)
                 responseError = rawResponse;
@@ -136,22 +124,23 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @Then("el ingreso queda registrado en el sistema")
     public void elIngresoQuedaRegistradoEnElSistema() {
-        assertNotNull(ingresoJson, "No se obtuvo el ingreso de la respuesta");
-        assertNotNull(ingresoJson.get("id"), "La respuesta no trae id");
+        assertNotNull(ingresoJson, "La request no devolvio el ingreso");
+        assertNotNull(ingresoJson.get("id"), "El ingreso devuelto no trae id");
         assertThat(responseIngreso.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @And("el estado inicial del ingreso es {string}")
     public void elEstadoInicialDelIngresoEs(String estadoEsperado) {
-        assertNotNull(ingresoJson);
         assertThat(ingresoJson.get("estadoIngreso")).isEqualTo(estadoEsperado);
     }
 
     @And("el paciente entra en la cola de atención")
     public void elPacienteEntraEnLaColaDeAtención() {
-        assertNotNull(pacienteActual, "No hay paciente actual");
-        int pos = ingresoService.posicionEnLaCola(pacienteActual.getCuil().getValor());
-        assertTrue(pos > 0, "El ingreso no está en la cola de atención");
+        ColaAtencion cola = ingresoService.obtenerCola();
+
+        boolean estaEnCola = cola.estaElPaciente(pacienteActual.getCuil().getValor());
+
+        assertTrue(estaEnCola, "El ingreso no está en la cola de atención");
     }
 
     @Given("que no existe en el sistema el paciente con dni {int}")
@@ -163,40 +152,33 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @Given("que existen los siguientes ingresos en la cola de atención:")
     public void queExistenLosSiguientesIngresosEnLaColaDeAtención(DataTable dataTable) {
-        ingresoService.limpiarIngresos();
-
-
-        dataTable.asMaps(String.class, String.class).forEach(row -> {
-            // asegurar paciente
-            Paciente p = pacienteRepo.findByCuil(row.get("cuil"))
-                    .orElseGet(() -> {
-                        Paciente nuevo = new Paciente(row.get("cuil"), row.get("nombre"));
-                        pacienteRepo.save(nuevo);
-                        return nuevo;
-                    });
-
-            // request mínimo válido
-            IngresoRequest req = new IngresoRequest();
-            req.setCuilPaciente(p.getCuil().getValor());
-            req.setCuilEnfermera(enfermeraActual.getCuil().getValor());
-            req.setInforme("ingreso de prueba");
-            req.setTemperatura(36.5f);
-            req.setFrecuenciaCardiaca(80);
-            req.setFrecuenciaRespiratoria(16);
-            req.setFrecuenciaSistolica(120);
-            req.setFrecuenciaDiastolica(80);
-            req.setNivel(Integer.parseInt(row.get("nivel")));
-
-            // registrar (esto guarda y encola)
-            Ingreso i = ingresoService.registrarIngreso(req);
-
-
+        cola.limpiar();
+        dataTable.asMaps(String.class, String.class).forEach(fila -> {
+            Ingreso ingreso = new Ingreso(
+                    new Paciente(fila.get("cuil"),fila.get("nombre")),
+                    enfermeraActual,
+                    NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel"))));
+            ingreso.setFechaIngreso(LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso"))));
+            cola.encolar(ingreso);
         });
     }
 
+    @When("ingresa a la cola el paciente con los siguientes datos:")
+    public void ingresaALaColaElPacienteConLosSiguientesDatos(DataTable dataTable) {
+        Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
+        ingresoActual = new Ingreso(
+                new Paciente(fila.get("cuil"),fila.get("nombre")),
+                enfermeraActual,
+                NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")))
+        );
+        ingresoActual.setFechaIngreso(LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso"))));
+        cola.encolar(ingresoActual);
+        posicionResultante = cola.posicionDe(ingresoActual.getPaciente().getCuil().getValor());
+    }
 
     @Then("el nuevo ingreso se ubica en la posición {int} de la cola de atención")
     public void elNuevoIngresoSeUbicaEnLaPosiciónPosicionDeLaColaDeAtención(int posicionEsperada) {
+
         assertThat(posicionResultante).isEqualTo(posicionEsperada);
     }
 
@@ -210,4 +192,6 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
         assertTrue(cuerpo.contains(mensajeEsperado),
                 () -> "El mensaje esperado era '" + mensajeEsperado + "' pero fue '" + cuerpo + "'");
     }
+
+
 }

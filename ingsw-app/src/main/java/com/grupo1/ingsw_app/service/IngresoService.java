@@ -1,35 +1,31 @@
 package com.grupo1.ingsw_app.service;
 
-import com.grupo1.ingsw_app.domain.*;
+import com.grupo1.ingsw_app.domain.ColaAtencion;
+import com.grupo1.ingsw_app.domain.Ingreso;
+import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
-import com.grupo1.ingsw_app.persistance.IPersonalRepository;
+import com.grupo1.ingsw_app.security.SesionActual;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
 
 @Service
 public class IngresoService {
 
     private final IIngresoRepository repoIngreso;
     private final IPacienteRepository repoPaciente;
-    private final IPersonalRepository repoPersonal;
-    private final ColaAtencion cola=new ColaAtencion();
+    private final SesionActual sesionActual;
+    private final ColaAtencion cola;
 
-    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente,IPersonalRepository repoPersonal) {
+
+    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, SesionActual sesionActual) {
         this.repoIngreso = repoIngreso;
         this.repoPaciente = repoPaciente;
-        this.repoPersonal =repoPersonal;
-;
-
-    }
-
-
-    public void limpiarIngresos() {
-        repoIngreso.clear();
-        cola.limpiar();
+        this.sesionActual = sesionActual;
+        this.cola = new ColaAtencion();
     }
 
     public int posicionEnLaCola(String cuilPaciente) {
@@ -41,8 +37,10 @@ public class IngresoService {
         var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "El paciente no existe en el sistema y debe ser registrado antes del ingreso"));
-        var enfermera = repoPersonal.findByCuil(req.getCuilEnfermera())
-                .orElseThrow(() -> new IllegalArgumentException("Enfermera no encontrada"));
+
+        var enfermera = sesionActual.getEnfermeraActual();
+        if (enfermera == null)
+            throw new IllegalStateException("No hay enfermera autenticada");
 
         // --- Validaciones de campos (mensajes según tus escenarios) ---
         if (req.getInforme() == null || req.getInforme().trim().isEmpty())
@@ -92,8 +90,16 @@ public class IngresoService {
         cola.encolar(ingreso);
         return ingreso;
     }
-    public boolean estaEnCola(Ingreso i) {
-        return cola.contiene(i);
+
+    public ColaAtencion obtenerCola () {
+        cola.limpiar();
+        List<Ingreso> ingresos = repoIngreso.findByEstado("PENDIENTE");
+
+        for(Ingreso ingreso: ingresos){
+            cola.encolar(ingreso);
+        }
+
+        return cola;
     }
 
 

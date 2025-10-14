@@ -8,16 +8,31 @@ import java.util.*;
 @Repository
 public class IngresoRepository implements IIngresoRepository {
     private final Map<UUID, Ingreso> data = new LinkedHashMap<>();
-    private final Deque<Ingreso> cola = new ArrayDeque<>();
 
-    @Override public void save(Ingreso ingreso) {
+    @Override
+    public void save(Ingreso ingreso) {
         if (ingreso.getId() == null) ingreso.setId(UUID.randomUUID());
         data.put(ingreso.getId(), ingreso);
-        cola.addLast(ingreso);
     }
-    @Override public Optional<Ingreso> findById(UUID id) { return Optional.ofNullable(data.get(id)); }
-    @Override public List<Ingreso> findAll() { return new ArrayList<>(data.values()); }
-    @Override public boolean existsById(UUID id) { return data.containsKey(id); }
-    @Override public boolean estaEnCola(Ingreso ingreso) { return cola.contains(ingreso); }
-    @Override public void clear() { data.clear(); cola.clear(); }
+
+    @Override
+    public Optional<Ingreso> findById(UUID id) {
+        return Optional.ofNullable(data.get(id));
+    }
+
+    @Override
+    public List<Ingreso> findAll() {
+        return new ArrayList<>(data.values());
+    }
+
+    @Override
+    public List<Ingreso> findByEstado(String estado) {
+        return data.values().stream()
+                .filter(i -> i.getEstadoIngreso().name().equalsIgnoreCase(estado))
+                .toList();
+    }
+
+    @Override public boolean existsById(UUID id) {
+        return data.containsKey(id);
+    }
 }

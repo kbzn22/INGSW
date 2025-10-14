@@ -7,9 +7,8 @@ public interface IIngresoRepository {
 
     void save(Ingreso ingreso);
     Optional<Ingreso> findById(UUID id);
+    List<Ingreso> findByEstado(String estado);
     List<Ingreso> findAll();
     boolean existsById(UUID id);
-    boolean estaEnCola(Ingreso ingreso);
-    void clear();
 }
 
