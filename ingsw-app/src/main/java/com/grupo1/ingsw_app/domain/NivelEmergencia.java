@@ -28,9 +28,14 @@ public enum NivelEmergencia {
 
     // Utilidad: buscar por número de nivel (1..5).
     public static NivelEmergencia fromNumero(int numero) {
-        for (NivelEmergencia ne : values()) {
-            if (ne.getNumero() == numero) return ne;
+        switch (numero) {
+            case 1: return CRITICA;
+            case 2: return EMERGENCIA;
+            case 3: return URGENCIA;
+            case 4: return URGENCIA_MENOR;
+            case 5: return SIN_URGENCIA;
+            default: throw new IllegalArgumentException("La prioridad ingresada no existe o es nula");
         }
-        throw new IllegalArgumentException("Nivel de emergencia inválido: " + numero);
+        }
     }
-}
+

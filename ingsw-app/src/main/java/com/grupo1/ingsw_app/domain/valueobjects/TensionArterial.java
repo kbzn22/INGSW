@@ -6,16 +6,16 @@ public class TensionArterial {
     private final Frecuencia frecuenciaDiastolica;
 
 
-    public TensionArterial(Frecuencia frecuenciaSistolica, Frecuencia frecuenciaDiastolica) {
-        this.frecuenciaSistolica = frecuenciaSistolica;
-        this.frecuenciaDiastolica = frecuenciaDiastolica;
+    public TensionArterial(Double sistolica, Double diastolica) {
+        if (sistolica == null || diastolica == null)
+            throw new IllegalArgumentException("La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
+        if (sistolica < 0 || diastolica < 0)
+            throw new IllegalArgumentException("La presión arterial no puede ser negativa");
+
+        this.frecuenciaSistolica = new Frecuencia(sistolica);
+        this.frecuenciaDiastolica = new Frecuencia(diastolica);
     }
 
-    public Frecuencia getFrecuenciaSistolica() {
-        return frecuenciaSistolica;
-    }
-
-    public Frecuencia getFrecuenciaDiastolica() {
-        return frecuenciaDiastolica;
-    }
+    public Frecuencia getSistolica() { return frecuenciaSistolica; }
+    public Frecuencia getDiastolica() { return frecuenciaDiastolica; }
 }

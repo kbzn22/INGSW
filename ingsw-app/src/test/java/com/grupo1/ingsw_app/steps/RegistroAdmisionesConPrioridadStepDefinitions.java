@@ -83,39 +83,62 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     }
 
     @When("registro el ingreso del paciente con los siguientes datos:")
+    @When("intento registrar el ingreso del paciente con los siguientes datos:")
     public void registroElIngresoDelPacienteConLosSiguientesDatos(DataTable table) {
 
         Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
 
         String url = "http://localhost:" + port + "/api/ingresos";
 
+        java.util.function.Function<String, String> toNullableTrimmed =
+                s -> {
+                    if (s == null) return null;
+                    String raw = s.trim();
+                    if (raw.equalsIgnoreCase("null")) return null;
+                    // si viene entre comillas ("...") se las saco
+                    if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
+                        raw = raw.substring(1, raw.length() - 1);
+                    }
+                    return raw;
+                };
+
+        java.util.function.Function<String, Object> numOrRaw = s -> {
+            String v = toNullableTrimmed.apply(s);
+            if (v == null) return null;                // null real
+            try {
+                if (v.contains(".")) return Double.parseDouble(v); // número con punto
+                return Integer.parseInt(v);                        // entero
+            } catch (NumberFormatException ex) {
+                return v; // lo mando como String para que falle en el backend (400)
+            }
+        };
         // Construimos el cuerpo de la request como JSON
-        IngresoRequest request = new IngresoRequest();
-        request.setCuilPaciente(pacienteActual.getCuil().getValor());
-        request.setCuilEnfermera(enfermeraActual.getCuil().getValor());
-        request.setInforme(fila.get("informe"));
-        request.setTemperatura(Float.parseFloat(fila.get("temperatura")));
-        request.setFrecuenciaCardiaca(Double.parseDouble(fila.get("frecuencia cardiaca")));
-        request.setFrecuenciaRespiratoria(Double.parseDouble(fila.get("frecuencia respiratoria")));
-        request.setFrecuenciaSistolica(Double.parseDouble(fila.get("frecuencia sistolica")));
-        request.setFrecuenciaDiastolica(Double.parseDouble(fila.get("frecuencia diastolica")));
-        request.setNivel(Integer.parseInt(fila.get("nivel")));
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("cuilPaciente", pacienteActual.getCuil().getValor());
+        body.put("cuilEnfermera", enfermeraActual.getCuil().getValor());
+        body.put("informe", toNullableTrimmed.apply(fila.get("informe")));
+        body.put("temperatura", numOrRaw.apply(fila.get("temperatura")));
+        body.put("frecuenciaCardiaca", numOrRaw.apply(fila.get("frecuencia cardiaca")));
+        body.put("frecuenciaRespiratoria", numOrRaw.apply(fila.get("frecuencia respiratoria")));
+        body.put("frecuenciaSistolica", numOrRaw.apply(fila.get("frecuencia sistolica")));
+        body.put("frecuenciaDiastolica", numOrRaw.apply(fila.get("frecuencia diastolica")));
+        body.put("nivel", numOrRaw.apply(fila.get("nivel")));
 
+        System.out.println(body);
         try {
-            ResponseEntity<String> rawResponse =
-                    restTemplate.postForEntity(url, request, String.class);
-            System.out.println("Código HTTP devuelto: " + rawResponse.getStatusCode());
-            System.out.println("Body: " + rawResponse.getBody());
+            ResponseEntity<String> raw = restTemplate.postForEntity(url, body, String.class);
 
-            if (rawResponse.getStatusCode().is2xxSuccessful()) {
-
-                ingresoJson = mapper.readValue(rawResponse.getBody(), Map.class);
-                responseIngreso = ResponseEntity.status(rawResponse.getStatusCode()).build();
+            if (raw.getStatusCode().is2xxSuccessful()) {
+                // Éxito -> guardo ingresoJson y limpio responseError
+                ingresoJson = new com.fasterxml.jackson.databind.ObjectMapper()
+                        .readValue(raw.getBody(), java.util.Map.class);
+                responseIngreso = ResponseEntity.status(raw.getStatusCode()).build();
                 responseError = null;
             } else {
-                // Si es error (400, 404, etc.)
-                responseError = rawResponse;
+                // Error 4xx/5xx -> guardo responseError
+                responseError = raw;
                 responseIngreso = null;
+                ingresoJson = null;
             }
         } catch (Exception e) {
             throw new RuntimeException("Error durante la llamada al endpoint de registro de ingreso", e);
@@ -138,28 +161,28 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     public void elPacienteEntraEnLaColaDeAtención() {
         ColaAtencion cola = ingresoService.obtenerCola();
 
-        boolean estaEnCola = cola.estaElPaciente(pacienteActual.getCuil().getValor());
+        boolean estaEnCola = cola.contiene(pacienteActual.getCuil().getValor());
 
         assertTrue(estaEnCola, "El ingreso no está en la cola de atención");
     }
 
     @Given("que no existe en el sistema el paciente con dni {int}")
     public void queNoExisteEnElSistemaElPacienteConDni(int dni) {
-        // Tu dominio usa CUIL; para este Given garantizamos que no exista el paciente actual
+
         pacienteRepo.clear();
         pacienteActual = null;
     }
 
     @Given("que existen los siguientes ingresos en la cola de atención:")
     public void queExistenLosSiguientesIngresosEnLaColaDeAtención(DataTable dataTable) {
-        cola.limpiar();
+
         dataTable.asMaps(String.class, String.class).forEach(fila -> {
             Ingreso ingreso = new Ingreso(
                     new Paciente(fila.get("cuil"),fila.get("nombre")),
                     enfermeraActual,
                     NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel"))));
             ingreso.setFechaIngreso(LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso"))));
-            cola.encolar(ingreso);
+
         });
     }
 
@@ -172,7 +195,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
                 NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")))
         );
         ingresoActual.setFechaIngreso(LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso"))));
-        cola.encolar(ingresoActual);
+        cola.agregar(ingresoActual);
         posicionResultante = cola.posicionDe(ingresoActual.getPaciente().getCuil().getValor());
     }
 

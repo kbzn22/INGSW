@@ -82,6 +82,9 @@ public class Ingreso {
     }
 
     public void setDescripcion(String descripcion) {
+        if (descripcion == null || descripcion.trim().isEmpty()) {
+            throw new IllegalArgumentException("El informe es obligatorio y no puede estar vacío ni contener solo espacios");
+        }
         this.descripcion = descripcion;
     }
 

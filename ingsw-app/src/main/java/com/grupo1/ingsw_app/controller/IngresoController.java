@@ -1,8 +1,7 @@
 package com.grupo1.ingsw_app.controller;
 
-import com.grupo1.ingsw_app.domain.Ingreso;
-import com.grupo1.ingsw_app.service.IngresoService;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
+import com.grupo1.ingsw_app.service.IngresoService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,23 +16,13 @@ public class IngresoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> registrarIngreso(@RequestBody IngresoRequest request) {
+    public ResponseEntity<?> crear(@RequestBody IngresoRequest req) {
         try {
-            Ingreso nuevo = service.registrarIngreso(request);
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(nuevo);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body(e.getMessage());
+            var ingreso = service.registrarIngreso(req);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Para que tus escenarios NEGATIVOS vean el mensaje exacto
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

@@ -5,35 +5,33 @@ import java.util.stream.IntStream;
 
 public class ColaAtencion {
 
-    private List<Ingreso> ingresosEnCola = new ArrayList<>();
+    private final List<Ingreso> ingresos = new ArrayList<>();
 
-    public void limpiar() {
-        ingresosEnCola.clear();
-    }
-
-    public void encolar(Ingreso ingreso) {
-        ingresosEnCola.add(ingreso);
+    public void agregar(Ingreso i) {
+        ingresos.add(i);
         ordenar();
     }
 
-    public boolean estaElPaciente(String cuil) {
-        return ingresosEnCola.stream()
-                .anyMatch(i -> i.getPaciente().getCuil().getValor().equals(cuil));
-    }
-
-    public int posicionDe(String cuilPaciente) {
-        int idx = IntStream.range(0, ingresosEnCola.size())
-                .filter(i -> ingresosEnCola.get(i).getPaciente().getCuil().getValor().equals(cuilPaciente))
-                .findFirst().orElse(-1);
-        return (idx == -1) ? -1 : idx + 1; // 1-based
-    }
-
-    public List<Ingreso> verCola() { return Collections.unmodifiableList(ingresosEnCola); }
-
     private void ordenar() {
-        ingresosEnCola.sort(
+        ingresos.sort(
                 Comparator.comparingInt((Ingreso i) -> i.getNivelEmergencia().getNivel().getNivel())
                         .thenComparing(Ingreso::getFechaIngreso)
         );
+    }
+    public List<Ingreso> ver() {
+        return Collections.unmodifiableList(ingresos);
+    }
+
+    public boolean contiene(String cuil) {
+        return ingresos.stream()
+                .anyMatch(i -> i.getPaciente().getCuil().getValor().equals(cuil));
+    }
+    public int posicionDe(String cuil) {
+        for (int i = 0; i < ingresos.size(); i++) {
+            if (ingresos.get(i).getPaciente().getCuil().getValor().equals(cuil)) {
+                return i + 1;
+            }
+        }
+        return 0; // No encontrado
     }
 }

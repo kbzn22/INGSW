@@ -13,6 +13,9 @@ public class SesionActual {
     }
 
     public void setEnfermeraActual(Enfermera enfermeraActual) {
+        if (enfermeraActual == null) {
+            throw new IllegalStateException("No hay enfermera autenticada");
+        }
         this.enfermeraActual = enfermeraActual;
     }
 

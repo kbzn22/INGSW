@@ -1,5 +1,6 @@
 package com.grupo1.ingsw_app.persistance;
 
+import com.grupo1.ingsw_app.domain.EstadoIngreso;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import org.springframework.stereotype.Repository;
 
@@ -16,23 +17,23 @@ public class IngresoRepository implements IIngresoRepository {
     }
 
     @Override
-    public Optional<Ingreso> findById(UUID id) {
-        return Optional.ofNullable(data.get(id));
-    }
-
-    @Override
-    public List<Ingreso> findAll() {
-        return new ArrayList<>(data.values());
-    }
-
-    @Override
-    public List<Ingreso> findByEstado(String estado) {
-        return data.values().stream()
-                .filter(i -> i.getEstadoIngreso().name().equalsIgnoreCase(estado))
-                .toList();
-    }
-
-    @Override public boolean existsById(UUID id) {
+    public boolean existsById(String id) {
         return data.containsKey(id);
     }
+
+    @Override
+    public void clear() {
+        data.clear();
+    }
+
+    @Override
+    public List<Ingreso> findByEstadoPendiente() {
+        List<Ingreso> out = new ArrayList<>();
+        for (Ingreso i : data.values()) {
+            if (i.getEstadoIngreso() == EstadoIngreso.PENDIENTE) out.add(i);
+        }
+        return out;
+    }
+
+
 }
