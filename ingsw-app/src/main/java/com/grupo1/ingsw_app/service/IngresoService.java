@@ -29,13 +29,7 @@ public class IngresoService {
 
     }
 
-    public ColaAtencion obtenerCola() {
-        ColaAtencion cola = new ColaAtencion();
-        for (Ingreso i : repoIngreso.findByEstadoPendiente()) {
-            cola.agregar(i);
-        }
-        return cola;
-    }
+
     public Ingreso registrarIngreso(IngresoRequest req) {
 
         var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
@@ -55,8 +49,19 @@ public class IngresoService {
                 (req.getFrecuenciaDiastolica())
         ));
         repoIngreso.save(ingreso);
+        cola.agregar(ingreso);
         return ingreso;
     }
 
+    public ColaAtencion obtenerCola () {
+        cola.limpiar();
+        List<Ingreso> ingresos = repoIngreso.findByEstadoPendiente();
+
+        for(Ingreso ingreso: ingresos){
+            cola.agregar(ingreso);
+        }
+
+        return cola;
+    }
 
 }

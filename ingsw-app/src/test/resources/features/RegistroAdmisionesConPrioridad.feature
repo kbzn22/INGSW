@@ -98,7 +98,7 @@ Feature: Registro de admisiones en urgencias
       | texto |
 
   Scenario: Registro fallido porque el paciente no existe en el sistema
-    Given que no existe en el sistema el paciente con dni 55555888
+    Given que no existe en el sistema el paciente con cuil "20-55555888-4"
     When registro el ingreso del paciente con los siguientes datos:
       | informe          | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel |
       | Dolor abdominal  | 37.5        | 80                  | 18                      | 120                  | 80                    | 3     |

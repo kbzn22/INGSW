@@ -7,10 +7,8 @@ public class FrecuenciaCardiaca extends Frecuencia {
     }
 
     private static Double validar(Double v) {
-        if (v == null || v.isNaN() || v.isInfinite())
+        if (v == null || v.isNaN() || v.isInfinite()||v < 0)
             throw new IllegalArgumentException("La frecuencia cardíaca debe ser un número válido (latidos por minuto)");
-        if (v < 0)
-            throw new IllegalArgumentException("La frecuencia cardíaca no puede ser negativa");
         return v;
     }
 }

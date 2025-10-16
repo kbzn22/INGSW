@@ -3,7 +3,6 @@ package com.grupo1.ingsw_app.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupo1.ingsw_app.domain.*;
-import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 import com.grupo1.ingsw_app.security.SesionActual;
@@ -58,7 +57,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     private int posicionResultante;
 
     private Ingreso ingresoActual;
-    private Map<String, Object> ingresoJson;
+    private Map ingresoJson;
 
     @Given("la siguiente enfermera está autenticada en el sistema")
     public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
@@ -112,9 +111,11 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
                 return v; // lo mando como String para que falle en el backend (400)
             }
         };
-        // Construimos el cuerpo de la request como JSON
+        String cuilPaciente = (pacienteActual != null)
+                ? pacienteActual.getCuil().getValor()
+                : cuilPacienteNoExistente;
         Map<String, Object> body = new java.util.LinkedHashMap<>();
-        body.put("cuilPaciente", pacienteActual.getCuil().getValor());
+        body.put("cuilPaciente", cuilPaciente);
         body.put("cuilEnfermera", enfermeraActual.getCuil().getValor());
         body.put("informe", toNullableTrimmed.apply(fila.get("informe")));
         body.put("temperatura", numOrRaw.apply(fila.get("temperatura")));
@@ -129,9 +130,8 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
             ResponseEntity<String> raw = restTemplate.postForEntity(url, body, String.class);
 
             if (raw.getStatusCode().is2xxSuccessful()) {
-                // Éxito -> guardo ingresoJson y limpio responseError
-                ingresoJson = new com.fasterxml.jackson.databind.ObjectMapper()
-                        .readValue(raw.getBody(), java.util.Map.class);
+
+                ingresoJson = new com.fasterxml.jackson.databind.ObjectMapper().readValue(raw.getBody(), java.util.Map.class);
                 responseIngreso = ResponseEntity.status(raw.getStatusCode()).build();
                 responseError = null;
             } else {
@@ -161,28 +161,39 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     public void elPacienteEntraEnLaColaDeAtención() {
         ColaAtencion cola = ingresoService.obtenerCola();
 
-        boolean estaEnCola = cola.contiene(pacienteActual.getCuil().getValor());
+        boolean estaEnCola = cola.estaElPaciente(pacienteActual.getCuil().getValor());
 
         assertTrue(estaEnCola, "El ingreso no está en la cola de atención");
     }
 
-    @Given("que no existe en el sistema el paciente con dni {int}")
-    public void queNoExisteEnElSistemaElPacienteConDni(int dni) {
+    String cuilPacienteNoExistente;
 
+    @Given("que no existe en el sistema el paciente con cuil {string}")
+    public void queNoExisteEnElSistemaElPacienteConDni(String cuil) {
         pacienteRepo.clear();
         pacienteActual = null;
+        cuilPacienteNoExistente = cuil;
     }
+
+
 
     @Given("que existen los siguientes ingresos en la cola de atención:")
     public void queExistenLosSiguientesIngresosEnLaColaDeAtención(DataTable dataTable) {
 
-        dataTable.asMaps(String.class, String.class).forEach(fila -> {
-            Ingreso ingreso = new Ingreso(
-                    new Paciente(fila.get("cuil"),fila.get("nombre")),
-                    enfermeraActual,
-                    NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel"))));
-            ingreso.setFechaIngreso(LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso"))));
+        cola = new ColaAtencion(); // limpiamos y aseguramos una cola nueva
 
+        dataTable.asMaps(String.class, String.class).forEach(row -> {
+            Paciente p = new Paciente(row.get("cuil"), row.get("nombre"));
+            NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(row.get("nivel")));
+            LocalDateTime fechaHora = LocalDateTime.of(
+                    fechaBase,
+                    LocalTime.parse(row.get("hora de ingreso"))
+            );
+
+            Ingreso i = new Ingreso(p, null, nivel);
+            i.setFechaIngreso(fechaHora);
+
+            cola.agregar(i);
         });
     }
 
