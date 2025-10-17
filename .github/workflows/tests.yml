@@ -2,9 +2,9 @@ name: Ejecutar tests automáticos
 
 on:
   push:
-    branches: [ "main", "develop", "testing" ]
+    branches: [ "main", "Modulo-de-urgencias" ]
   pull_request:
-    branches: [ "main", "develop", "testing" ]
+    branches: [ "main", "Modulo-de-urgencias"  ]
 
 jobs:
   build-and-test:
