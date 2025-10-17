@@ -1,10 +1,10 @@
-  name: Ejecutar tests automáticos
+name: Ejecutar tests automáticos
 
 on:
   push:
-    branches: [ main, develop, testing ]
+    branches: [ "main", "develop", "testing" ]
   pull_request:
-    branches: [ main, develop, testing ]
+    branches: [ "main", "develop", "testing" ]
 
 jobs:
   build-and-test:
@@ -17,16 +17,9 @@ jobs:
       - name: Configurar JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
-          cache: 'maven'
+          cache: maven
 
       - name: Compilar y ejecutar tests
-        run: mvn -B clean verify
-
-      - name: Publicar reporte de Cucumber
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cucumber-report
-          path: target/cucumber-reports/
+        run: mvn -B clean ver
