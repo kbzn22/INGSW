@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Ingreso {
-    Atencion atencion;
     Paciente paciente;
     UUID id;
     Enfermera enfermera;
@@ -27,14 +26,6 @@ public class Ingreso {
         this.enfermera = enfermera;
         this.nivelEmergencia = nivelEmergencia;
         this.id = UUID.randomUUID();
-    }
-
-    public Atencion getAtencion() {
-        return atencion;
-    }
-
-    public void setAtencion(Atencion atencion) {
-        this.atencion = atencion;
     }
 
     public Paciente getPaciente() {

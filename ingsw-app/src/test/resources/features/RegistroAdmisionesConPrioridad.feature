@@ -5,8 +5,8 @@ Feature: Registro de admisiones en urgencias
 #10 escenarios
   Background:
     Given la siguiente enfermera está autenticada en el sistema
-    |  cuil         | nombre | apellido  | Matricula |
-    | 20-30574930-4 | Maria  | Del Valle | ABC123    |
+    |  cuil         | nombre | apellido  | matricula | email           |
+    | 20-30574930-4 | Maria  | Del Valle | ABC123    | maria@gmail.com |
     And existe en el sistema el paciente:
       | cuil           | nombre |
       | 20-44477310-4  | Enzo   |
@@ -19,7 +19,8 @@ Feature: Registro de admisiones en urgencias
     And el estado inicial del ingreso es "PENDIENTE"
     And el paciente entra en la cola de atención
 
-  # ──────────────── ESCENARIOS NEGATIVOS ────────────────
+
+  Rule: Escenarios negativos (campos invalidos)
 
   Scenario Outline: Registro fallido porque el informe es nulo o está vacío
     When registro el ingreso del paciente con los siguientes datos:
@@ -104,7 +105,9 @@ Feature: Registro de admisiones en urgencias
       | Dolor abdominal  | 37.5        | 80                  | 18                      | 120                  | 80                    | 3     |
     Then el sistema muestra un mensaje de error "El paciente no existe en el sistema y debe ser registrado antes del ingreso"
 
-  Scenario Outline: Reordenamiento de la cola según el nivel de prioridad del nuevo ingreso
+   Rule: Logica del ordenamiento de la cola
+
+   Scenario Outline: Reordenamiento de la cola según el nivel de prioridad del nuevo ingreso
     Given que existen los siguientes ingresos en la cola de atención:
       | cuil          | nombre          | nivel | hora de ingreso |
       | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
@@ -124,9 +127,9 @@ Feature: Registro de admisiones en urgencias
   Scenario Outline: Desempate en la cola de atención entre pacientes con el mismo nivel de prioridad
     Given que existen los siguientes ingresos en la cola de atención:
       | cuil           | nombre          | nivel | hora de ingreso |
-      | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
-      | 20-44666000-4 | Pablo Fernández | 3     | 09:05           |
-      | 20-44777000-4 | Luis Gómez      | 3     | 09:10           |
+      | 20-44555000-4  | Laura Medina    | 2     | 09:00           |
+      | 20-44666000-4  | Pablo Fernández | 3     | 09:05           |
+      | 20-44777000-4  | Luis Gómez      | 3     | 09:10           |
     When ingresa a la cola el paciente con los siguientes datos:
       | cuil          | nombre      | informe        | nivel | hora de ingreso |
       | 20-44477310-4 | Enzo Juarez | Dolor torácico | 3     | <hora>          |
