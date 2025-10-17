@@ -28,9 +28,23 @@ jobs:
       - name: Compilar y ejecutar tests
         run: mvn -B clean verify
 
-      - name: Publicar reporte de Cucumber
+      - name: Listar archivos generados
+        if: always()
+        run: |
+          ls -la
+          ls -la target || true
+          find target -maxdepth=3 -type f -print || true
+
+      - name: Publicar reportes (Cucumber + Surefire)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cucumber-report
-          path: ingsw-app/target/cucumber-reports/** 
+          name: test-reports
+          path: |
+            target/cucumber-reports/**
+            target/**/cucumber*.json
+            target/**/cucumber*.xml
+            target/**/cucumber*.html
+            target/surefire-reports/**
+            target/failsafe-reports/**
+          if-no-files-found: warn
