@@ -2,6 +2,7 @@ package com.grupo1.ingsw_app.domain.valueobjects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.grupo1.ingsw_app.exception.CuilInvalidoException;
 
 import java.util.Objects;
 
@@ -11,11 +12,11 @@ public final class Cuil {
 
     @JsonCreator
     public Cuil(String valor) {
-        if (valor == null || valor.isBlank() || !valor.trim().matches("\\d{2}-\\d{8}-\\d{1}")) {
-            throw new IllegalArgumentException("CUIL inválido");
+        if (!esValido(valor)) {
+            throw new CuilInvalidoException(valor);
         }
 
-        this.valor = valor;
+        this.valor = valor.trim();
     }
 
     @JsonValue
@@ -39,5 +40,9 @@ public final class Cuil {
     @Override
     public int hashCode() {
         return Objects.hash(valor);
+    }
+
+    private boolean esValido(String valor){
+        return valor != null && !valor.isBlank() && valor.trim().matches("\\d{2}-\\d{8}-\\d");
     }
 }

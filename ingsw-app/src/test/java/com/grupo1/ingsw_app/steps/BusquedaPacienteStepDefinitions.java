@@ -29,7 +29,7 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
     @LocalServerPort
     private int port;
 
-    // Cliente HTTP de pruebas (proveído por Spring Boot Test)
+    // Cliente HTTP de pruebas (provisto por Spring Boot Test)
     @Autowired
     private TestRestTemplate restTemplate;
 

@@ -13,7 +13,6 @@ public class IngresoRequest {
     private Double frecuenciaDiastolica;
     private Integer nivel;
 
-    // -------- Getters --------
     public String getCuilPaciente() { return cuilPaciente; }
     public String getCuilEnfermera() { return cuilEnfermera; }
     public String getInforme() { return informe; }
@@ -24,7 +23,6 @@ public class IngresoRequest {
     public Double getFrecuenciaDiastolica() { return frecuenciaDiastolica; }
     public Integer getNivel() { return nivel; }
 
-    // -------- Setters --------
     public void setCuilPaciente(String cuilPaciente) { this.cuilPaciente = cuilPaciente; }
     public void setCuilEnfermera(String cuilEnfermera) { this.cuilEnfermera = cuilEnfermera; }
     public void setInforme(String informe) { this.informe = informe; }

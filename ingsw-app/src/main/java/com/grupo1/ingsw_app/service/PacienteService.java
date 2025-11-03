@@ -1,8 +1,9 @@
 package com.grupo1.ingsw_app.service;
 
+import com.grupo1.ingsw_app.domain.Paciente;
+import com.grupo1.ingsw_app.exception.PacienteNoEncontradoException;
 import org.springframework.stereotype.Service;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
-import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
 import java.util.Optional;
@@ -23,7 +24,7 @@ public class PacienteService {
         Optional<Paciente> paciente = repo.findByCuil(cuil.getValor());
 
         if (paciente.isEmpty()) {
-            throw new RuntimeException("Paciente no encontrado");
+            throw new PacienteNoEncontradoException(cuil.getValor());
         }
 
         return paciente.get();
