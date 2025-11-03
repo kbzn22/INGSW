@@ -19,20 +19,8 @@ public class PacienteController {
     @GetMapping("/{cuil}")
     public ResponseEntity<?> buscarPorCuil(@PathVariable String cuil) {
 
-        try {
-            Paciente paciente = service.buscarPorCuil(cuil);
-            return ResponseEntity.ok(paciente);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body(e.getMessage());
-        }
+        Paciente paciente = service.buscarPorCuil(cuil);
+        return ResponseEntity.ok(paciente);
 
     }
 }
