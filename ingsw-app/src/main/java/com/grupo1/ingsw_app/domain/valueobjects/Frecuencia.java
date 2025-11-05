@@ -7,5 +7,7 @@ public class  Frecuencia {
         this.valor = valor;
     }
 
-    public Double getValor() { return valor; }
+    public Double getValor() {
+        return valor;
+    }
 }
