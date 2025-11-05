@@ -15,4 +15,12 @@ public class Enfermera extends Persona{
         super(new Cuil(cuil), nombre, apellido, email);
         this.matricula = matricula;
     }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public String getMatricula() {
+        return matricula;
+    }
 }

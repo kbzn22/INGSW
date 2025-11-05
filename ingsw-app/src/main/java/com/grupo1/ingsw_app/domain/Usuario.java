@@ -19,4 +19,6 @@ public class Usuario {
     public String getPassword() {
         return password;
     }
+
+
 }

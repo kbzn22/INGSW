@@ -1,4 +1,4 @@
-package com.grupo1.unitTesting; // 👈 o el paquete donde la tenés
+package com.grupo1.unitTesting;
 
 import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.service.BuscadorPacientes;
