@@ -1,6 +1,7 @@
 package com.grupo1.ingsw_app.service;
 
 import com.grupo1.ingsw_app.domain.Paciente;
+import com.grupo1.ingsw_app.dtos.PacienteRequest;
 import com.grupo1.ingsw_app.exception.PacienteNoEncontradoException;
 import org.springframework.stereotype.Service;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
@@ -29,4 +30,16 @@ public class PacienteService {
 
         return paciente.get();
     }
+
+    public Paciente registrarPaciente(PacienteRequest req) {
+
+        Paciente paciente = new Paciente(
+
+        );
+
+
+        return paciente;
+    }
+
+
 }

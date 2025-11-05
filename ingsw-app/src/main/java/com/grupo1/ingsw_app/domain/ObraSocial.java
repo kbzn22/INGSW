@@ -1,0 +1,10 @@
+package com.grupo1.ingsw_app.domain;
+
+import java.util.UUID;
+
+public class ObraSocial {
+
+    private UUID id;
+    private String nombre;
+
+}

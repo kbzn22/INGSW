@@ -4,6 +4,9 @@ import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
 public class Paciente extends Persona {
 
+    private Domicilio domicilio;
+    private Afiliado obraSocial;
+
     public Paciente (){
     }
 
@@ -11,20 +14,9 @@ public class Paciente extends Persona {
         super(new Cuil(cuil), nombre);
     }
 
-    /*
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Paciente)) return false;
-        Paciente p = (Paciente) o;
-        return Objects.equals(dni, p.dni)
-                && Objects.equals(nombre, p.nombre);
+    public Paciente(String cuil, String nombre, String apellido, String email, String calle, String numero, String localidad) {
+        super(new Cuil(cuil), nombre, apellido, email);
+        this.domicilio = new Domicilio(calle, numero, localidad);
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(dni, nombre);
-    }*/
 
 }

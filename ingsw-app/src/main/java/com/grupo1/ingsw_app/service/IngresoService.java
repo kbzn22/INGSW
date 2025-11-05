@@ -28,7 +28,6 @@ public class IngresoService {
         this.repoPaciente = repoPaciente;
         this.sesionActual = sesionActual;
         this.cola = new ColaAtencion();
-
     }
 
     public Ingreso registrarIngreso(IngresoRequest req) {
