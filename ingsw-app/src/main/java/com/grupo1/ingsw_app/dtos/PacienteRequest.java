@@ -1,5 +1,7 @@
 package com.grupo1.ingsw_app.dtos;
 
+import java.util.UUID;
+
 public class PacienteRequest {
 
     private String cuil;
@@ -9,7 +11,7 @@ public class PacienteRequest {
     private String calle;
     private String numero;
     private String localidad;
-    private Long idObraSocial;       // puede ser null
+    private UUID idObraSocial;       // puede ser null
     private String numeroAfiliado;   // puede ser null
 
     public PacienteRequest(
@@ -20,7 +22,7 @@ public class PacienteRequest {
             String calle,
             String numero,
             String localidad,
-            Long idObraSocial,
+            UUID idObraSocial,
             String numeroAfiliado
     ) {
         this.cuil = cuil;
@@ -41,6 +43,6 @@ public class PacienteRequest {
     public String getCalle() { return calle; }
     public String getNumero() { return numero; }
     public String getLocalidad() { return localidad; }
-    public Long getIdObraSocial() { return idObraSocial; }
+    public UUID getIdObraSocial() { return idObraSocial; }
     public String getNumeroAfiliado() { return numeroAfiliado; }
 }

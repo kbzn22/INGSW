@@ -2,13 +2,14 @@ package com.grupo1.ingsw_app.controller.helpers;
 
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 
+import java.util.UUID;
+
 public class RequestParser {
 
     private RequestParser() {} // evita instanciación
 
     public static String asString(Object v, String campo, String mensaje) {
-        if (v == null)
-            throw new CampoInvalidoException(campo, mensaje);
+        if (v == null) return null;
 
         String str = String.valueOf(v).trim();
         if (str.isEmpty())
@@ -27,11 +28,11 @@ public class RequestParser {
         }
     }
 
-    public static Long parseLong(Object v, String campo, String mensaje) {
+    public static UUID parseUUID(Object v, String campo, String mensaje) {
         if (v == null) return null;
         try {
-            if (v instanceof Number n) return n.longValue();
-            return Long.parseLong(String.valueOf(v).trim());
+            if (v instanceof UUID uuid) return uuid;
+            return UUID.fromString(String.valueOf(v).trim());
         } catch (Exception e) {
             throw new CampoInvalidoException(campo, mensaje);
         }

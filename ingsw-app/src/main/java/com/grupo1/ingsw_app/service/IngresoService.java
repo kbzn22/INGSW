@@ -6,7 +6,7 @@ import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
-import com.grupo1.ingsw_app.exception.PacienteNoEncontradoException;
+import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 import com.grupo1.ingsw_app.security.SesionActual;
@@ -37,7 +37,7 @@ public class IngresoService {
         }
 
         var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
-                .orElseThrow(() -> new PacienteNoEncontradoException(req.getCuilPaciente()));
+                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: "+req.getCuilPaciente()));
 
         var enfermera = sesionActual.getEnfermeraActual();
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
