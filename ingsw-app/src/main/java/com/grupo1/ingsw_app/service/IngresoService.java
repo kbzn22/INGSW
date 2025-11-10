@@ -5,9 +5,9 @@ import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
-import com.grupo1.ingsw_app.persistance.IIngresoRepository;
-import com.grupo1.ingsw_app.persistance.IPacienteRepository;
-import com.grupo1.ingsw_app.security.SesionActual;
+import com.grupo1.ingsw_app.persistence.IIngresoRepository;
+import com.grupo1.ingsw_app.persistence.IPacienteRepository;
+import com.grupo1.ingsw_app.security.Sesion;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,14 +17,14 @@ public class IngresoService {
 
     private final IIngresoRepository repoIngreso;
     private final IPacienteRepository repoPaciente;
-    private final SesionActual sesionActual;
+    private final Sesion sesion;
     private final ColaAtencion cola;
 
 
-    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, SesionActual sesionActual) {
+    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesion) {
         this.repoIngreso = repoIngreso;
         this.repoPaciente = repoPaciente;
-        this.sesionActual = sesionActual;
+        this.sesion = sesion;
         this.cola = new ColaAtencion();
 
     }
@@ -36,7 +36,7 @@ public class IngresoService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "El paciente no existe en el sistema y debe ser registrado antes del ingreso"));
 
-        var enfermera = sesionActual.getEnfermeraActual();
+        var enfermera = sesion.getEnfermera();
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
         String informe = req.getInforme();
         Ingreso ingreso = new Ingreso(paciente, enfermera, nivel);

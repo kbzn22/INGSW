@@ -36,23 +36,4 @@ public class AutenticacionController {
                 .body("ok");
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(name="SESSION_ID", required=false) String sid){
-        if (sid != null) auth.logout(sid);
-
-        ResponseCookie expired = ResponseCookie.from("SESSION_ID", "")
-                .httpOnly(true).secure(true).sameSite("Strict").path("/").maxAge(0).build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, expired.toString())
-                .body("bye");
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<?> me(@CookieValue(name="SESSION_ID") String sid){
-        Usuario u = auth.requireSession(sid);
-        return ResponseEntity.ok(new MeDto(u.getUsuario()));
-    }
-
-    record MeDto(String username) {}
 }

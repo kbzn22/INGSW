@@ -1,74 +1,55 @@
+// src/main/java/com/grupo1/ingsw_app/service/AutenticacionService.java
 package com.grupo1.ingsw_app.service;
 
-import com.grupo1.ingsw_app.domain.Usuario;
-import com.grupo1.ingsw_app.persistance.DoctorRepository;
-import com.grupo1.ingsw_app.persistance.EnfermeraRepository;
-import com.grupo1.ingsw_app.persistance.SesionRepository;
-import com.grupo1.ingsw_app.persistance.UsuarioRepository;
-import com.grupo1.ingsw_app.security.SesionActual;
+import com.grupo1.ingsw_app.domain.*;
+import com.grupo1.ingsw_app.persistence.PersonalRepository;
+import com.grupo1.ingsw_app.persistence.SesionRepository;
+import com.grupo1.ingsw_app.security.Sesion;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.security.SecureRandom;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 public class AutenticacionService {
 
-        private final UsuarioRepository userRepo;
-        private final SesionRepository sesionRepo;
-        private final PasswordEncoder encoder;
-        private final DoctorRepository doctorRepo;
-        private final EnfermeraRepository enfermeraRepo;
-        private final SecureRandom random = new SecureRandom();
+    private final PersonalRepository personalRepo;
+    private final Sesion sesion;
+    private final PasswordEncoder encoder;
 
+    public AutenticacionService(PersonalRepository personalRepo, Sesion sesion, PasswordEncoder encoder) {
+        this.personalRepo = personalRepo;
+        this.sesion = sesion;
+        this.encoder = encoder;
+    }
 
-        public AutenticacionService(UsuarioRepository userRepo, SesionRepository sesionRepo, PasswordEncoder encoder,DoctorRepository doctorRepo, EnfermeraRepository enfermeraRepo) {
-            this.userRepo = userRepo;
-            this.sesionRepo = sesionRepo;
-            this.encoder = encoder;
-            this.doctorRepo=doctorRepo;
-            this.enfermeraRepo=enfermeraRepo;
+    /** login: valida usuario/password, crea sesión y devuelve id */
+    public String login(String username, String rawPassword) {
+        Persona persona = personalRepo.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("El usuario no existe"));
 
+        Usuario cuenta = (persona instanceof Doctor d) ? d.getUsuario()
+                : (persona instanceof Enfermera e) ? e.getUsuario()
+                : null;
+
+        if (cuenta == null)
+            throw new IllegalStateException("El personal no tiene una cuenta de usuario asociada");
+
+        if (!encoder.matches(rawPassword, cuenta.getPassword())
+                && !cuenta.getPassword().equals(rawPassword)) {
+            throw new IllegalArgumentException("La contraseña es incorrecta");
         }
 
 
-        public void register(String username, String rawPassword, String cuil, Set<String> roles){
-            String hash = encoder.encode(rawPassword);
-            userRepo.save(new Usuario(username, hash));
-        }
+        sesion.iniciar(cuenta.getUsuario(), persona, 2L); // 2 horas
 
-        public String login(String username, String rawPassword){
-            Usuario u = userRepo.findByUsername(username)
-                    .orElseThrow(() -> new NoSuchElementException("El usuario no existe"));
+        return sesion.getId();
+    }
 
-            if (!encoder.matches(rawPassword, u.getPassword()))
-                throw new IllegalArgumentException("La contraseña es incorrecta");
+    /** obtiene el Usuario vinculado a una sesión */
+    public Usuario requireSession(String sessionId) {
 
-            String sid = newSessionId();
-            SesionActual s = new SesionActual(sid, u.getUsuario(), Instant.now().plus(2, ChronoUnit.HOURS));
-            sesionRepo.save(s);
-            return sid; // este es el valor que va en el cookie
-        }
-
-        public void logout(String sessionId){
-            sesionRepo.delete(sessionId);
-        }
-
-        public Usuario requireSession(String sessionId){
-            SesionActual s = sesionRepo.find(sessionId)
-                    .orElseThrow(() -> new IllegalStateException("Sesión inválida o expirada"));
-            return userRepo.findByUsername(s.getUsername())
-                    .orElseThrow(() -> new IllegalStateException("Usuario de sesión inexistente"));
-        }
-
-        private String newSessionId(){
-            byte[] bytes = new byte[32];
-            random.nextBytes(bytes);
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        }
-
+        // Leemos del bean session-scoped (ya tiene la Persona seteada en login)
+        Persona p = sesion.getPersona();
+        throw new IllegalStateException("Tipo de personal no reconocido");
+    }
 }
-

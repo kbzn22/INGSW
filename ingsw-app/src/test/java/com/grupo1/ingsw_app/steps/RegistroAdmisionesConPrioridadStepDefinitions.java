@@ -3,9 +3,12 @@ package com.grupo1.ingsw_app.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupo1.ingsw_app.domain.*;
-import com.grupo1.ingsw_app.persistance.IIngresoRepository;
-import com.grupo1.ingsw_app.persistance.IPacienteRepository;
-import com.grupo1.ingsw_app.security.SesionActual;
+import com.grupo1.ingsw_app.persistence.IIngresoRepository;
+import com.grupo1.ingsw_app.persistence.IPacienteRepository;
+import com.grupo1.ingsw_app.persistence.PersonalRepository;
+import com.grupo1.ingsw_app.security.Sesion;
+
+import com.grupo1.ingsw_app.service.AutenticacionService;
 import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.*;
@@ -14,7 +17,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.beans.Encoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -42,8 +47,12 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     @Autowired
     private IIngresoRepository ingresoRepo;
 
-    @Autowired
-    private SesionActual sesionActual;
+
+    private Sesion sesionActual;
+    PersonalRepository personalRepository= new PersonalRepository();
+    Sesion s  = new Sesion(); // new directamente
+    BCryptPasswordEncoder encoder  = new BCryptPasswordEncoder();
+    AutenticacionService auth = new AutenticacionService(personalRepository,s ,encoder );
 
     private ResponseEntity<String> responseError;
     private ResponseEntity<Ingreso> responseIngreso;
@@ -68,7 +77,8 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
                 fila.get("apellido"),
                 fila.get("matricula"),
                 "");
-        sesionActual.setEnfermeraActual(enfermera);
+
+        sesionActual.setUsuario(enfermera);
         enfermeraActual = enfermera;
     }
 

@@ -17,8 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.springframework.http.HttpStatus;
 
 import com.grupo1.ingsw_app.domain.Paciente;
-import com.grupo1.ingsw_app.persistance.IPacienteRepository;
-import org.springframework.web.client.RestClientResponseException;
+import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 
 import java.util.*;
 

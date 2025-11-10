@@ -1,7 +1,7 @@
 package com.grupo1.ingsw_app.service;
 
 import org.springframework.stereotype.Service;
-import com.grupo1.ingsw_app.persistance.IPacienteRepository;
+import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
