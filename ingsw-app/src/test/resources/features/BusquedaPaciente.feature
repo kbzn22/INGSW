@@ -29,7 +29,7 @@ Feature: Búsqueda de pacientes
 
   Scenario Outline: Búsqueda con CUIL inválido (sin formato de cuil)
     When busco el paciente con cuil "<cuil>"
-    Then el sistema muestra mensaje de error "El CUIL ingresado es inválido: <cuil>"
+    Then el sistema muestra mensaje de error "El campo 'cuil' es inválido: debe tener formato de cuil"
 
     Examples:
     | cuil     |

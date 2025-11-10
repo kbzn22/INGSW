@@ -4,7 +4,6 @@ import com.grupo1.ingsw_app.domain.ObraSocial;
 import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.dtos.PacienteRequest;
 import com.grupo1.ingsw_app.exception.AfiliacionInvalidaException;
-import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.external.IObraSocialClient;
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import com.grupo1.ingsw_app.persistance.IPacienteRepository;
 import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PacienteService {
@@ -56,29 +56,25 @@ public class PacienteService {
 
     private ObraSocial validarDatosObraSocial(PacienteRequest req){
 
-        // Caso 1: sin obra social → permitido
-        if (req.getIdObraSocial() == null && req.getNumeroAfiliado() == null) return null;
+        UUID idObraSocial = req.getIdObraSocial();
+        String numeroAfiliado = req.getNumeroAfiliado();
 
-        // Caso 2: uno de los dos falta → rechazado
-        if (req.getIdObraSocial() == null || req.getNumeroAfiliado() == null) {
-            throw new CampoInvalidoException(
-                    "obraSocial/numeroAfiliado",
-                    "debe indicarse obra social y número de afiliado juntos"
-            );
-        }
+        // Caso 2: sin obra social → permitido
+        if (idObraSocial == null && numeroAfiliado == null) return null;
 
         //Caso 3: obra social no existe → rechazado
-        ObraSocial obraSocial = obraSocialClient.buscarPorId(req.getIdObraSocial());
+        ObraSocial obraSocial = obraSocialClient.buscarPorId(idObraSocial);
         if (obraSocial == null) {
             throw new EntidadNoEncontradaException("ObraSocial", "id: "+req.getIdObraSocial());
         }
 
         //Caso 4: obra social existe pero no tiene un afiliado con ese numero → rechazado
-        boolean estaAfiliado = obraSocialClient.estaAfiliado(req.getIdObraSocial(), req.getNumeroAfiliado());
+        boolean estaAfiliado = obraSocialClient.estaAfiliado(idObraSocial, numeroAfiliado);
         if (!estaAfiliado) {
-            throw new AfiliacionInvalidaException("El número de afiliado no pertenece a la obra social indicada");
+            throw new AfiliacionInvalidaException(idObraSocial, numeroAfiliado);
         }
 
+        // Caso 1: con obra social → permitido
         return obraSocial;
 
     }

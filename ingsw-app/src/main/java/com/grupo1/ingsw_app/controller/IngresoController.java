@@ -1,7 +1,6 @@
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
-import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.service.IngresoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

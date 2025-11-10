@@ -9,7 +9,7 @@ public class PacienteRequest {
     private String apellido;
     private String email;
     private String calle;
-    private String numero;
+    private Integer numero;
     private String localidad;
     private UUID idObraSocial;       // puede ser null
     private String numeroAfiliado;   // puede ser null
@@ -20,7 +20,7 @@ public class PacienteRequest {
             String apellido,
             String email,
             String calle,
-            String numero,
+            Integer numero,
             String localidad,
             UUID idObraSocial,
             String numeroAfiliado
@@ -41,7 +41,7 @@ public class PacienteRequest {
     public String getApellido() { return apellido; }
     public String getEmail() { return email; }
     public String getCalle() { return calle; }
-    public String getNumero() { return numero; }
+    public Integer getNumero() { return numero; }
     public String getLocalidad() { return localidad; }
     public UUID getIdObraSocial() { return idObraSocial; }
     public String getNumeroAfiliado() { return numeroAfiliado; }

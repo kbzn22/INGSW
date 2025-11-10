@@ -10,4 +10,7 @@ public class Afiliado {
         this.numeroAfiliado = numeroAfiliado;
     }
 
+    public ObraSocial getObraSocial() {
+        return obraSocial;
+    }
 }

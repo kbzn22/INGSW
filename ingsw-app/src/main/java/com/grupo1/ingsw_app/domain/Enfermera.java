@@ -6,7 +6,7 @@ public class Enfermera extends Persona{
     String matricula;
 
     public Enfermera(String cuil, String nombre, String apellido, String matricula, String email) {
-        super(new Cuil(cuil), nombre, apellido, email);
+        super(cuil, nombre, apellido, email);
         this.matricula = matricula;
     }
 }

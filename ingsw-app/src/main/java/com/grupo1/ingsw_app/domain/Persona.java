@@ -12,8 +12,8 @@ public abstract class Persona {
 
     }
 
-    public Persona(Cuil cuil, String nombre, String apellido, String email) {
-        this.cuil = cuil;
+    public Persona(String cuil, String nombre, String apellido, String email) {
+        this.cuil = new Cuil(cuil);
         this.nombre = nombre;
         this.apellido = apellido;
         this.email = email;

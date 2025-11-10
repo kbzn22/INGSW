@@ -5,7 +5,6 @@ import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
-import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistance.IIngresoRepository;
 import com.grupo1.ingsw_app.persistance.IPacienteRepository;
@@ -32,12 +31,8 @@ public class IngresoService {
 
     public Ingreso registrarIngreso(IngresoRequest req) {
 
-        if (req.getInforme() == null || req.getInforme().trim().isEmpty()) {
-            throw new CampoInvalidoException("informe", "no puede estar vacío ni contener solo espacios");
-        }
-
         var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
-                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: "+req.getCuilPaciente()));
+                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: " + req.getCuilPaciente()));
 
         var enfermera = sesionActual.getEnfermeraActual();
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
