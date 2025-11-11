@@ -6,7 +6,7 @@ import com.grupo1.ingsw_app.dtos.PacienteRequest;
 import com.grupo1.ingsw_app.exception.AfiliacionInvalidaException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.external.IObraSocialClient;
-import com.grupo1.ingsw_app.persistance.IPacienteRepository;
+import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
