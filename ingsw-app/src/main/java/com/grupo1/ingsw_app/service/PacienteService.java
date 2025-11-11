@@ -1,8 +1,11 @@
 package com.grupo1.ingsw_app.service;
 
+import com.grupo1.ingsw_app.domain.Paciente;
+///import com.grupo1.ingsw_app.exception.PacienteNoEncontradoException;
 import org.springframework.stereotype.Service;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.domain.Paciente;
+import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
 
 import java.util.Optional;

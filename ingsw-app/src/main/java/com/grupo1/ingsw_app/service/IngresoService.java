@@ -17,14 +17,14 @@ public class IngresoService {
 
     private final IIngresoRepository repoIngreso;
     private final IPacienteRepository repoPaciente;
-    private final Sesion sesion;
+    private final Sesion sesionActual;
     private final ColaAtencion cola;
 
 
-    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesion) {
+    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesionActual) {
         this.repoIngreso = repoIngreso;
         this.repoPaciente = repoPaciente;
-        this.sesion = sesion;
+        this.sesionActual = sesionActual;
         this.cola = new ColaAtencion();
 
     }
@@ -32,11 +32,14 @@ public class IngresoService {
 
     public Ingreso registrarIngreso(IngresoRequest req) {
 
-        var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "El paciente no existe en el sistema y debe ser registrado antes del ingreso"));
+        if (req.getInforme() == null || req.getInforme().trim().isEmpty()) {
+            throw new CampoInvalidoException("informe", "no puede estar vacío ni contener solo espacios");
+        }
 
-        var enfermera = sesion.getEnfermera();
+        var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
+                .orElseThrow(() -> new PacienteNoEncontradoException(req.getCuilPaciente()));
+
+        var enfermera = sesionActual.getEnfermera();
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
         String informe = req.getInforme();
         Ingreso ingreso = new Ingreso(paciente, enfermera, nivel);

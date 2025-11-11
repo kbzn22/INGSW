@@ -7,8 +7,6 @@ import com.grupo1.ingsw_app.persistence.IIngresoRepository;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.persistence.PersonalRepository;
 import com.grupo1.ingsw_app.security.Sesion;
-
-import com.grupo1.ingsw_app.service.AutenticacionService;
 import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.*;
@@ -16,13 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.beans.Encoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,14 +58,13 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     private Paciente pacienteActual;
     private Enfermera enfermeraActual;
-
+    private Ingreso ingresoActual;
+    private Map<String, Object> ingresoJson;
     private final ObjectMapper mapper = new ObjectMapper();
     private final LocalDate fechaBase = LocalDate.of(2025, 10, 12);
     private ColaAtencion cola = new ColaAtencion();
     private int posicionResultante;
-
-    private Ingreso ingresoActual;
-    private Map ingresoJson;
+    private String cuilPacienteNoExistente;
 
     private String sessionCookie;
 
@@ -145,7 +142,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
                     if (s == null) return null;
                     String raw = s.trim();
                     if (raw.equalsIgnoreCase("null")) return null;
-
+                    // si viene entre comillas ("...") se las saco
                     if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
                         raw = raw.substring(1, raw.length() - 1);
                     }
@@ -154,12 +151,12 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
         java.util.function.Function<String, Object> numOrRaw = s -> {
             String v = toNullableTrimmed.apply(s);
-            if (v == null) return null;
+            if (v == null) return null;                // null real
             try {
-                if (v.contains(".")) return Double.parseDouble(v);
-                return Integer.parseInt(v);
+                if (v.contains(".")) return Double.parseDouble(v); // número con punto
+                return Integer.parseInt(v);                        // entero
             } catch (NumberFormatException ex) {
-                return v;
+                return v; // lo mando como String para que falle en el backend (400)
             }
         };
         String cuilPaciente = (pacienteActual != null)
@@ -200,6 +197,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
                 responseIngreso = ResponseEntity.status(raw.getStatusCode()).build();
                 responseError = null;
             } else {
+                // Error 4xx/5xx -> guardo responseError
                 responseError = raw;
                 responseIngreso = null;
                 ingresoJson = null;
@@ -246,18 +244,16 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
         cola = new ColaAtencion(); // limpiamos y aseguramos una cola nueva
 
-        dataTable.asMaps(String.class, String.class).forEach(row -> {
-            Paciente p = new Paciente(row.get("cuil"), row.get("nombre"));
-            NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(row.get("nivel")));
-            LocalDateTime fechaHora = LocalDateTime.of(
-                    fechaBase,
-                    LocalTime.parse(row.get("hora de ingreso"))
+        dataTable.asMaps(String.class, String.class).forEach(fila -> {
+            Ingreso ingreso = new Ingreso(
+                    new Paciente(fila.get("cuil"), fila.get("nombre")),
+                    enfermeraActual,
+                    NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")))
             );
 
-            Ingreso i = new Ingreso(p, null, nivel);
-            i.setFechaIngreso(fechaHora);
+            ingreso.setFechaIngreso(LocalDateTime.of( fechaBase, LocalTime.parse(fila.get("hora de ingreso")) ));
 
-            cola.agregar(i);
+            cola.agregar(ingreso);
         });
     }
 
