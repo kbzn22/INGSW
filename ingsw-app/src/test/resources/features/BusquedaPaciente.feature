@@ -25,11 +25,11 @@ Feature: Búsqueda de pacientes
 
   Scenario: Búsqueda por CUIL de paciente inexistente
     When busco el paciente con cuil "20-99999999-4"
-    Then el sistema muestra mensaje de error "No se encontró un paciente con CUIL: 20-99999999-4"
+    Then el sistema muestra mensaje de error "No se encontró 'paciente' con CUIL: 20-99999999-4"
 
   Scenario Outline: Búsqueda con CUIL inválido (sin formato de cuil)
     When busco el paciente con cuil "<cuil>"
-    Then el sistema muestra mensaje de error "El CUIL ingresado es inválido: <cuil>"
+    Then el sistema muestra mensaje de error "El campo 'cuil' es inválido: debe tener formato de cuil"
 
     Examples:
     | cuil     |

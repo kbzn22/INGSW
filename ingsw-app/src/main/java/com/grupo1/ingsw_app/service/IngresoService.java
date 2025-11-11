@@ -5,6 +5,8 @@ import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
+import com.grupo1.ingsw_app.exception.CampoInvalidoException;
+import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistence.IIngresoRepository;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.security.Sesion;
@@ -29,7 +31,6 @@ public class IngresoService {
 
     }
 
-
     public Ingreso registrarIngreso(IngresoRequest req) {
 
         if (req.getInforme() == null || req.getInforme().trim().isEmpty()) {
@@ -37,11 +38,12 @@ public class IngresoService {
         }
 
         var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
-                .orElseThrow(() -> new PacienteNoEncontradoException(req.getCuilPaciente()));
+                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: " + req.getCuilPaciente()));
 
         var enfermera = sesionActual.getEnfermera();
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
         String informe = req.getInforme();
+
         Ingreso ingreso = new Ingreso(paciente, enfermera, nivel);
         ingreso.setDescripcion(informe);
         ingreso.setTemperatura(new Temperatura(req.getTemperatura()));
@@ -51,6 +53,7 @@ public class IngresoService {
                 (req.getFrecuenciaSistolica()),
                 (req.getFrecuenciaDiastolica())
         ));
+
         repoIngreso.save(ingreso);
         cola.agregar(ingreso);
         return ingreso;

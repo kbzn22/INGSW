@@ -2,7 +2,7 @@ package com.grupo1.ingsw_app.domain.valueobjects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.grupo1.ingsw_app.exception.CuilInvalidoException;
+import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 
 import java.util.Objects;
 
@@ -13,7 +13,7 @@ public final class Cuil {
     @JsonCreator
     public Cuil(String valor) {
         if (!esValido(valor)) {
-            throw new CuilInvalidoException(valor);
+            throw new CampoInvalidoException("cuil", "debe tener formato de cuil");
         }
 
         this.valor = valor.trim();
