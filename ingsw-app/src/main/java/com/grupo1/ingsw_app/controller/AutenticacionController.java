@@ -3,13 +3,13 @@ package com.grupo1.ingsw_app.controller;
 import com.grupo1.ingsw_app.domain.Usuario;
 import com.grupo1.ingsw_app.service.AutenticacionService;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+@RestController
+@RequestMapping("/auth")
 public class AutenticacionController {
     private final AutenticacionService auth;
 
@@ -20,20 +20,21 @@ public class AutenticacionController {
     // auth.register("juareze","contr456","20-12547856-4", Set.of("USER"));
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password){
-        String sessionId = auth.login(username, password);
-
-        ResponseCookie cookie = ResponseCookie.from("SESSION_ID", sessionId)
-                .httpOnly(true)
-                .secure(true)              // true en HTTPS; en local podés desactivarlo si no usás https
-                .sameSite("Strict")        // o "Lax" si necesitás navegación inter-sitio controlada
-                .path("/")
-                .maxAge(2 * 60 * 60)       // 2 horas
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body("ok");
+    public ResponseEntity<Void> loginJson(@RequestBody LoginReq req) {
+        String sid = auth.login(req.username(), req.password());
+        ResponseCookie cookie = ResponseCookie.from("SESSION_ID", sid)
+                .httpOnly(true).secure(false) // poné true si usás HTTPS
+                .sameSite("Lax").path("/").build();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
     }
 
+    // acepta form-url-encoded: username=..&password=..
+    @PostMapping(path = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Void> loginForm(@RequestParam String username, @RequestParam String password) {
+        return loginJson(new LoginReq(username, password));
+    }
+
+    public record LoginReq(String username, String password) {}
 }
+
+

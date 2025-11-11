@@ -1,4 +1,4 @@
-/*package com.grupo1.ingsw_app.unitTesting;
+package com.grupo1.ingsw_app.unitTesting;
 
 import com.grupo1.ingsw_app.domain.Doctor;
 import com.grupo1.ingsw_app.domain.Enfermera;
@@ -35,7 +35,7 @@ public class WhenAutenticacionTest {
         Usuario uDoc = new Usuario("delvallem", encoder.encode("contr123"));
         Usuario uEnf = new Usuario("juareze", encoder.encode("contr456"));
 
-        Doctor doctora = new Doctor("20-30574930-4", "Maria", "Del Valle", "ABC123", "maria@hospi.com", uDoc);
+        Doctor doctora = new Doctor("Maria","Del Valle", "20-30574930-4", "ABC123", "maria@hospi.com", uDoc);
         Enfermera enfermero = new Enfermera("20-12547856-4", "Enzo", "Juarez", "ABC124", "enzo@hospi.com", uEnf);
 
         personal.save(doctora);
@@ -78,4 +78,3 @@ public class WhenAutenticacionTest {
     }
 }
 
-*/

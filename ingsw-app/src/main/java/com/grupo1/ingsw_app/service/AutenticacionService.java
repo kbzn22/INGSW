@@ -47,9 +47,17 @@ public class AutenticacionService {
 
     /** obtiene el Usuario vinculado a una sesión */
     public Usuario requireSession(String sessionId) {
+        if (sessionId == null || sesion.getId() == null
+                || !sessionId.equals(sesion.getId())
+                || sesion.isExpired()) {
+            throw new IllegalStateException("Sesión inválida o expirada");
+        }
 
-        // Leemos del bean session-scoped (ya tiene la Persona seteada en login)
-        Persona p = sesion.getPersona();
-        throw new IllegalStateException("Tipo de personal no reconocido");
+        Persona persona = sesion.getPersona();  // la persona autenticada en esta sesión
+
+        if (persona instanceof Doctor d)    return d.getUsuario();
+        if (persona instanceof Enfermera e) return e.getUsuario();
+
+        throw new IllegalStateException("Tipo de personal no reconocido: " + persona.getClass().getName());
     }
 }

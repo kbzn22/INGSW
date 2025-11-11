@@ -15,9 +15,9 @@ import io.cucumber.java.en.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.beans.Encoder;
 import java.time.LocalDate;
@@ -47,12 +47,13 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     @Autowired
     private IIngresoRepository ingresoRepo;
 
+    @Autowired
+    private PersonalRepository personalRepository;
 
-    private Sesion sesionActual;
-    PersonalRepository personalRepository= new PersonalRepository();
-    Sesion s  = new Sesion(); // new directamente
-    BCryptPasswordEncoder encoder  = new BCryptPasswordEncoder();
-    AutenticacionService auth = new AutenticacionService(personalRepository,s ,encoder );
+    @Autowired
+    private PasswordEncoder encoder;
+
+
 
     private ResponseEntity<String> responseError;
     private ResponseEntity<Ingreso> responseIngreso;
@@ -68,17 +69,57 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     private Ingreso ingresoActual;
     private Map ingresoJson;
 
+    private String sessionCookie;
+
+    private void loginAndCaptureCookie(String username, String password) {
+        String url = "http://localhost:" + port + "/auth/login";
+
+
+        var headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        var bodyJson = java.util.Map.of("username", username, "password", password);
+        var req = new org.springframework.http.HttpEntity<>(bodyJson, headers);
+
+        ResponseEntity<String> resp = restTemplate.postForEntity(url, req, String.class);
+
+        if (!resp.getStatusCode().is2xxSuccessful()) {
+
+            var headers2 = new org.springframework.http.HttpHeaders();
+            headers2.setContentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED);
+            var form = new org.springframework.util.LinkedMultiValueMap<String, String>();
+            form.add("username", username);
+            form.add("password", password);
+            var req2 = new org.springframework.http.HttpEntity<>(form, headers2);
+            resp = restTemplate.postForEntity(url, req2, String.class);
+        }
+
+        assertThat(resp.getStatusCode().is2xxSuccessful()).isTrue();
+
+        String setCookie = resp.getHeaders().getFirst("Set-Cookie");
+        assertThat(setCookie).as("Set-Cookie ausente").isNotBlank();
+        this.sessionCookie = setCookie.split(";", 2)[0]; // "SESSION_ID=abc..."
+    }
+
+
+
     @Given("la siguiente enfermera está autenticada en el sistema")
     public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
         Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
+        String rawPass = "contr123";
+        Usuario userEnfermera = new Usuario("delvallem", encoder.encode(rawPass));
         Enfermera enfermera = new Enfermera(
                 fila.get("cuil"),
                 fila.get("nombre"),
                 fila.get("apellido"),
                 fila.get("matricula"),
-                "");
+                "", userEnfermera);
+        personalRepository.save(enfermera);
+        loginAndCaptureCookie("delvallem", "contr123");
+        assertThat(personalRepository.findByUsername("delvallem"))
+                .as("El repo no indexó por username 'delvallem'")
+                .isPresent();
+        loginAndCaptureCookie("delvallem", rawPass);
 
-        sesionActual.setUsuario(enfermera);
         enfermeraActual = enfermera;
     }
 
@@ -104,7 +145,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
                     if (s == null) return null;
                     String raw = s.trim();
                     if (raw.equalsIgnoreCase("null")) return null;
-                    // si viene entre comillas ("...") se las saco
+
                     if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
                         raw = raw.substring(1, raw.length() - 1);
                     }
@@ -113,12 +154,12 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
         java.util.function.Function<String, Object> numOrRaw = s -> {
             String v = toNullableTrimmed.apply(s);
-            if (v == null) return null;                // null real
+            if (v == null) return null;
             try {
-                if (v.contains(".")) return Double.parseDouble(v); // número con punto
-                return Integer.parseInt(v);                        // entero
+                if (v.contains(".")) return Double.parseDouble(v);
+                return Integer.parseInt(v);
             } catch (NumberFormatException ex) {
-                return v; // lo mando como String para que falle en el backend (400)
+                return v;
             }
         };
         String cuilPaciente = (pacienteActual != null)
@@ -135,17 +176,30 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
         body.put("frecuenciaDiastolica", numOrRaw.apply(fila.get("frecuencia diastolica")));
         body.put("nivel", numOrRaw.apply(fila.get("nivel")));
 
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if (sessionCookie != null) headers.add(HttpHeaders.COOKIE, sessionCookie);
+
         System.out.println(body);
         try {
-            ResponseEntity<String> raw = restTemplate.postForEntity(url, body, String.class);
+            ResponseEntity<String> raw = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
 
             if (raw.getStatusCode().is2xxSuccessful()) {
 
-                ingresoJson = new com.fasterxml.jackson.databind.ObjectMapper().readValue(raw.getBody(), java.util.Map.class);
+                if (raw.getBody() != null && !raw.getBody().isBlank()) {
+                    ingresoJson = mapper.readValue(raw.getBody(), java.util.Map.class);
+                } else if (raw.getHeaders().getLocation() != null) {
+
+                    ResponseEntity<String> getResp = restTemplate.getForEntity(raw.getHeaders().getLocation(), String.class);
+                    assertThat(getResp.getStatusCode().is2xxSuccessful()).isTrue();
+                    ingresoJson = mapper.readValue(getResp.getBody(), java.util.Map.class);
+                } else {
+                    ingresoJson = null; // para que el assert falle con mensaje claro
+                }
                 responseIngreso = ResponseEntity.status(raw.getStatusCode()).build();
                 responseError = null;
             } else {
-                // Error 4xx/5xx -> guardo responseError
                 responseError = raw;
                 responseIngreso = null;
                 ingresoJson = null;
