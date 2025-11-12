@@ -103,7 +103,7 @@ Feature: Registro de admisiones en urgencias
     When registro el ingreso del paciente con los siguientes datos:
       | informe          | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica | frecuencia diastolica | nivel |
       | Dolor abdominal  | 37.5        | 80                  | 18                      | 120                  | 80                    | 3     |
-    Then el sistema muestra un mensaje de error "No se encontró un paciente con CUIL: 20-55555888-4"
+    Then el sistema muestra un mensaje de error "No se encontró 'paciente' con CUIL: 20-55555888-4"
 
    Rule: Logica del ordenamiento de la cola
 

@@ -13,6 +13,28 @@ public class IngresoRequest {
     private Double frecuenciaDiastolica;
     private Integer nivel;
 
+    public IngresoRequest(
+            String cuilPaciente,
+            String cuilEnfermera,
+            String informe,
+            Float temperatura,
+            Double frecuenciaCardiaca,
+            Double frecuenciaRespiratoria,
+            Double frecuenciaSistolica,
+            Double frecuenciaDiastolica,
+            Integer nivel
+    ) {
+        this.cuilPaciente          = cuilPaciente;
+        this.cuilEnfermera         = cuilEnfermera;
+        this.informe               = informe;
+        this.temperatura           = temperatura;
+        this.frecuenciaCardiaca    = frecuenciaCardiaca;
+        this.frecuenciaRespiratoria= frecuenciaRespiratoria;
+        this.frecuenciaSistolica   = frecuenciaSistolica;
+        this.frecuenciaDiastolica  = frecuenciaDiastolica;
+        this.nivel                 = nivel;
+    }
+
     public String getCuilPaciente() { return cuilPaciente; }
     public String getCuilEnfermera() { return cuilEnfermera; }
     public String getInforme() { return informe; }

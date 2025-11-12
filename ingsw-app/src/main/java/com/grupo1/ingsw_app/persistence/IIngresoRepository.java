@@ -1,4 +1,4 @@
-package com.grupo1.ingsw_app.persistance;
+package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.Ingreso;
 import java.util.*;

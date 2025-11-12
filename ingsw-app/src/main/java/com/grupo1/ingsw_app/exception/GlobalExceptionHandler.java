@@ -12,20 +12,12 @@ import java.time.OffsetDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(PacienteNoEncontradoException.class)
+    @ExceptionHandler(EntidadNoEncontradaException.class)
     public ResponseEntity<ApiError> handlePacienteNoEncontrado(
-            PacienteNoEncontradoException ex,
+            EntidadNoEncontradaException ex,
             HttpServletRequest request
     ) {
         return build(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), request, "PACIENTE_NO_ENCONTRADO");
-    }
-
-    @ExceptionHandler(CuilInvalidoException.class)
-    public ResponseEntity<ApiError> handleCuilInvalido(
-            CuilInvalidoException ex,
-            HttpServletRequest request
-    ) {
-        return build(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request, "CUIL_INVALIDO");
     }
 
     @ExceptionHandler(CampoInvalidoException.class)
