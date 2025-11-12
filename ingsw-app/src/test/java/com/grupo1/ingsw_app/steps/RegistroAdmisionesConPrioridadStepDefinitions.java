@@ -7,22 +7,20 @@ import com.grupo1.ingsw_app.persistence.IIngresoRepository;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.persistence.PersonalRepository;
 import com.grupo1.ingsw_app.security.Sesion;
-
-import com.grupo1.ingsw_app.service.AutenticacionService;
 import com.grupo1.ingsw_app.service.IngresoService;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.beans.Encoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,38 +45,78 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     @Autowired
     private IIngresoRepository ingresoRepo;
 
+    @Autowired
+    private PersonalRepository personalRepository;
 
-    private Sesion sesionActual;
-    PersonalRepository personalRepository= new PersonalRepository();
-    Sesion s  = new Sesion(); // new directamente
-    BCryptPasswordEncoder encoder  = new BCryptPasswordEncoder();
-    AutenticacionService auth = new AutenticacionService(personalRepository,s ,encoder );
+    @Autowired
+    private PasswordEncoder encoder;
+
+
 
     private ResponseEntity<String> responseError;
     private ResponseEntity<Ingreso> responseIngreso;
 
     private Paciente pacienteActual;
     private Enfermera enfermeraActual;
-
+    private Ingreso ingresoActual;
+    private Map<String, Object> ingresoJson;
     private final ObjectMapper mapper = new ObjectMapper();
     private final LocalDate fechaBase = LocalDate.of(2025, 10, 12);
     private ColaAtencion cola = new ColaAtencion();
     private int posicionResultante;
+    private String cuilPacienteNoExistente;
 
-    private Ingreso ingresoActual;
-    private Map ingresoJson;
+    private String sessionCookie;
+
+    private void loginAndCaptureCookie(String username, String password) {
+        String url = "http://localhost:" + port + "/auth/login";
+
+
+        var headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        var bodyJson = java.util.Map.of("username", username, "password", password);
+        var req = new org.springframework.http.HttpEntity<>(bodyJson, headers);
+
+        ResponseEntity<String> resp = restTemplate.postForEntity(url, req, String.class);
+
+        if (!resp.getStatusCode().is2xxSuccessful()) {
+
+            var headers2 = new org.springframework.http.HttpHeaders();
+            headers2.setContentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED);
+            var form = new org.springframework.util.LinkedMultiValueMap<String, String>();
+            form.add("username", username);
+            form.add("password", password);
+            var req2 = new org.springframework.http.HttpEntity<>(form, headers2);
+            resp = restTemplate.postForEntity(url, req2, String.class);
+        }
+
+        assertThat(resp.getStatusCode().is2xxSuccessful()).isTrue();
+
+        String setCookie = resp.getHeaders().getFirst("Set-Cookie");
+        assertThat(setCookie).as("Set-Cookie ausente").isNotBlank();
+        this.sessionCookie = setCookie.split(";", 2)[0]; // "SESSION_ID=abc..."
+    }
+
+
 
     @Given("la siguiente enfermera está autenticada en el sistema")
     public void laEnfermeraSiguienteEnfermeraEstáAutenticadaEnElSistema(DataTable table) {
         Map<String, String> fila = table.asMaps(String.class, String.class).get(0);
+        String rawPass = "contr123";
+        Usuario userEnfermera = new Usuario("delvallem", encoder.encode(rawPass));
         Enfermera enfermera = new Enfermera(
                 fila.get("cuil"),
                 fila.get("nombre"),
                 fila.get("apellido"),
                 fila.get("matricula"),
-                "");
+                "", userEnfermera);
+        personalRepository.save(enfermera);
+        loginAndCaptureCookie("delvallem", "contr123");
+        assertThat(personalRepository.findByUsername("delvallem"))
+                .as("El repo no indexó por username 'delvallem'")
+                .isPresent();
+        loginAndCaptureCookie("delvallem", rawPass);
 
-        sesionActual.setUsuario(enfermera);
         enfermeraActual = enfermera;
     }
 
@@ -135,13 +173,27 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
         body.put("frecuenciaDiastolica", numOrRaw.apply(fila.get("frecuencia diastolica")));
         body.put("nivel", numOrRaw.apply(fila.get("nivel")));
 
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if (sessionCookie != null) headers.add(HttpHeaders.COOKIE, sessionCookie);
+
         System.out.println(body);
         try {
-            ResponseEntity<String> raw = restTemplate.postForEntity(url, body, String.class);
+            ResponseEntity<String> raw = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
 
             if (raw.getStatusCode().is2xxSuccessful()) {
 
-                ingresoJson = new com.fasterxml.jackson.databind.ObjectMapper().readValue(raw.getBody(), java.util.Map.class);
+                if (raw.getBody() != null && !raw.getBody().isBlank()) {
+                    ingresoJson = mapper.readValue(raw.getBody(), java.util.Map.class);
+                } else if (raw.getHeaders().getLocation() != null) {
+
+                    ResponseEntity<String> getResp = restTemplate.getForEntity(raw.getHeaders().getLocation(), String.class);
+                    assertThat(getResp.getStatusCode().is2xxSuccessful()).isTrue();
+                    ingresoJson = mapper.readValue(getResp.getBody(), java.util.Map.class);
+                } else {
+                    ingresoJson = null; // para que el assert falle con mensaje claro
+                }
                 responseIngreso = ResponseEntity.status(raw.getStatusCode()).build();
                 responseError = null;
             } else {
@@ -192,18 +244,16 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
         cola = new ColaAtencion(); // limpiamos y aseguramos una cola nueva
 
-        dataTable.asMaps(String.class, String.class).forEach(row -> {
-            Paciente p = new Paciente(row.get("cuil"), row.get("nombre"));
-            NivelEmergencia nivel = NivelEmergencia.fromNumero(Integer.parseInt(row.get("nivel")));
-            LocalDateTime fechaHora = LocalDateTime.of(
-                    fechaBase,
-                    LocalTime.parse(row.get("hora de ingreso"))
+        dataTable.asMaps(String.class, String.class).forEach(fila -> {
+            Ingreso ingreso = new Ingreso(
+                    new Paciente(fila.get("cuil"), fila.get("nombre")),
+                    enfermeraActual,
+                    NivelEmergencia.fromNumero(Integer.parseInt(fila.get("nivel")))
             );
 
-            Ingreso i = new Ingreso(p, null, nivel);
-            i.setFechaIngreso(fechaHora);
+            ingreso.setFechaIngreso(LocalDateTime.of( fechaBase, LocalTime.parse(fila.get("hora de ingreso")) ));
 
-            cola.agregar(i);
+            cola.agregar(ingreso);
         });
     }
 

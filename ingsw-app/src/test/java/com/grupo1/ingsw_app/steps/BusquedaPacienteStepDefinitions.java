@@ -28,7 +28,7 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
     @LocalServerPort
     private int port;
 
-    // Cliente HTTP de pruebas (proveído por Spring Boot Test)
+    // Cliente HTTP de pruebas (provisto por Spring Boot Test)
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -38,6 +38,7 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
     // Variables para almacenar las respuestas HTTP
     private ResponseEntity<Paciente> responsePaciente; // respuesta exitosa
     private ResponseEntity<String> responseError;      // respuesta de error
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Given("la enfermera está autenticada en el sistema")
     public void la_enfermera_esta_autenticada_en_el_sistema() {
@@ -62,7 +63,6 @@ public class BusquedaPacienteStepDefinitions extends CucumberSpringConfiguration
 
             // Si es 200, parseamos el JSON manualmente
             if (rawResponse.getStatusCode().is2xxSuccessful()) {
-                ObjectMapper mapper = new ObjectMapper();
                 Paciente paciente = mapper.readValue(rawResponse.getBody(), Paciente.class);
                 responsePaciente = ResponseEntity.ok(paciente);
                 responseError = null;

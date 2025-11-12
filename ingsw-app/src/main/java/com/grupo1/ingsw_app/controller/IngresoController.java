@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import static com.grupo1.ingsw_app.controller.helpers.RequestParser.*;
+
 @RestController
 @RequestMapping("/api/ingresos")
 public class IngresoController {
@@ -22,78 +24,32 @@ public class IngresoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Map<String, Object> body) {
-        try {
-            // (Opcional) log para ver lo que llega
-            // System.out.println(body);
+    public ResponseEntity<?> registrarIngreso(@RequestBody Map<String, Object> body) {
 
-            String informe = asString(body.get("informe"));
-            if (informe == null || informe.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body("El informe es obligatorio y no puede estar vacío ni contener solo espacios");
-            }
+        String cuilPaciente         = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
+        String cuilEnfermera        = asString(body.get("cuilEnfermera"), "cuilEnfermera", "es obligatorio indicar el CUIL de la enfermera");
+        String informe              = asString(body.get("informe"), "informe", "no puede estar vacío ni contener solo espacios");
+        Float  temperatura           = parseFloat(body.get("temperatura"), "temperatura", "debe tener valores positivos válidos (grados Celsius)");
+        Double frecuenciaCardiaca    = parseDouble(body.get("frecuenciaCardiaca"), "frecuenciaCardiaca", "debe tener valores positivos válidos (latidos por minuto)");
+        Double frecuenciaRespiratoria= parseDouble(body.get("frecuenciaRespiratoria"), "frecuenciaRespiratoria", "debe tener valores positivos válidos (respiraciones por minuto)");
+        Double frecuenciaSistolica   = parseDouble(body.get("frecuenciaSistolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)");
+        Double frecuenciaDiastolica  = parseDouble(body.get("frecuenciaDiastolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)");
+        Integer nivel                = parseInteger(body.get("nivel"), "nivel", "la prioridad ingresada no existe o es nula");
 
+        IngresoRequest req = new IngresoRequest(
+                cuilPaciente,
+                cuilEnfermera,
+                informe,
+                temperatura,
+                frecuenciaCardiaca,
+                frecuenciaRespiratoria,
+                frecuenciaSistolica,
+                frecuenciaDiastolica,
+                nivel
+        );
 
-            Float  temperatura       = parseFloat(body.get("temperatura"),
-                    "La temperatura debe ser un número válido en grados Celsius");
-            Double fc                 = parseDouble(body.get("frecuenciaCardiaca"),
-                    "La frecuencia cardíaca debe ser un número válido (latidos por minuto)");
-            Double fr                 = parseDouble(body.get("frecuenciaRespiratoria"),
-                    "La frecuencia respiratoria debe ser un número válido (respiraciones por minuto)");
-            Double fsis               = parseDouble(body.get("frecuenciaSistolica"),
-                    "La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
-            Double fdia               = parseDouble(body.get("frecuenciaDiastolica"),
-                    "La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
-            Integer nivel             = parseInteger(body.get("nivel"),
-                    "La prioridad ingresada no existe o es nula");
-
-            String cuilPaciente       = asString(body.get("cuilPaciente"));
-            String cuilEnfermera      = asString(body.get("cuilEnfermera"));
-
-
-            IngresoRequest req = new IngresoRequest();
-            req.setCuilPaciente(cuilPaciente);
-            req.setCuilEnfermera(cuilEnfermera);
-            req.setInforme(informe);
-            req.setTemperatura(temperatura);
-            req.setFrecuenciaCardiaca(fc);
-            req.setFrecuenciaRespiratoria(fr);
-            req.setFrecuenciaSistolica(fsis);
-            req.setFrecuenciaDiastolica(fdia);
-            req.setNivel(nivel);
-
-            var ingreso = service.registrarIngreso(req);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
-
-        } catch (IllegalArgumentException | IllegalStateException ex) {
-
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
-    }
-
-
-    private static String asString(Object v) {
-        return v == null ? null : String.valueOf(v);
-    }
-    private static Float parseFloat(Object v, String msg) {
-        if (v == null) throw new IllegalArgumentException(msg);
-        try {
-            if (v instanceof Number n) return n.floatValue();
-            return Float.parseFloat(String.valueOf(v).trim());
-        } catch (Exception e) { throw new IllegalArgumentException(msg); }
-    }
-    private static Double parseDouble(Object v, String msg) {
-        if (v == null) throw new IllegalArgumentException(msg);
-        try {
-            if (v instanceof Number n) return n.doubleValue();
-            return Double.parseDouble(String.valueOf(v).trim());
-        } catch (Exception e) { throw new IllegalArgumentException(msg); }
-    }
-    private static Integer parseInteger(Object v, String msg) {
-        if (v == null) throw new IllegalArgumentException(msg);
-        try {
-            if (v instanceof Number n) return n.intValue();
-            return Integer.parseInt(String.valueOf(v).trim());
-        } catch (Exception e) { throw new IllegalArgumentException(msg); }
+        var ingreso = service.registrarIngreso(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
     }
 }
+

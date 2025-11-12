@@ -1,5 +1,7 @@
 package com.grupo1.ingsw_app.domain.valueobjects;
 
+import com.grupo1.ingsw_app.exception.CampoInvalidoException;
+
 public class TensionArterial {
 
     private final Frecuencia frecuenciaSistolica;
@@ -8,11 +10,17 @@ public class TensionArterial {
 
     public TensionArterial(Double sistolica, Double diastolica) {
         if (sistolica == null || diastolica == null||sistolica < 0 || diastolica < 0)
-            throw new IllegalArgumentException("La presión arterial debe tener valores numéricos válidos para sistólica y diastólica");
+            throw new CampoInvalidoException("tensionArterial",
+                    "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)");
         this.frecuenciaSistolica = new Frecuencia(sistolica);
         this.frecuenciaDiastolica = new Frecuencia(diastolica);
     }
 
-    public Frecuencia getSistolica() { return frecuenciaSistolica; }
-    public Frecuencia getDiastolica() { return frecuenciaDiastolica; }
+    public Frecuencia getSistolica() {
+        return frecuenciaSistolica;
+    }
+
+    public Frecuencia getDiastolica() {
+        return frecuenciaDiastolica;
+    }
 }

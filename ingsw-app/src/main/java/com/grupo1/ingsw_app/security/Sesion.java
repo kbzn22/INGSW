@@ -6,7 +6,9 @@ import com.grupo1.ingsw_app.domain.Enfermera;
 import com.grupo1.ingsw_app.domain.Persona;
 
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -14,7 +16,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 
 @Component
-@Scope("sesion") // una instancia por sesión HTTP
+@Scope(value = WebApplicationContext.SCOPE_SESSION,
+        proxyMode = ScopedProxyMode.TARGET_CLASS) // una instancia por sesión HTTP
 public class Sesion {
 
     private String id;

@@ -2,6 +2,7 @@
 package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.*;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Repositorio unificado para todo el personal de salud (Doctores, Enfermeras, etc.).
  * Permite buscar por username, matrícula o CUIL sin duplicar código.
  */
+@Component
 public class PersonalRepository {
 
     // índices en memoria
@@ -42,7 +44,7 @@ public class PersonalRepository {
         byCuil.clear();
     }
 
-    // 🔹 Búsquedas genéricas
+
     public Optional<Persona> findByUsername(String username) {
         return Optional.ofNullable(byUsername.get(username));
     }
@@ -55,7 +57,6 @@ public class PersonalRepository {
         return Optional.ofNullable(byCuil.get(cuil));
     }
 
-    // 🔹 Helpers específicos (evitan casteos)
     public Optional<Doctor> findDoctorByUsername(String username) {
         Persona p = byUsername.get(username);
         return (p instanceof Doctor d) ? Optional.of(d) : Optional.empty();

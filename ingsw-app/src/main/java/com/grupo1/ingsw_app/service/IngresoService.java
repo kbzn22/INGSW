@@ -5,6 +5,8 @@ import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
+import com.grupo1.ingsw_app.exception.CampoInvalidoException;
+import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistence.IIngresoRepository;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.security.Sesion;
@@ -17,28 +19,31 @@ public class IngresoService {
 
     private final IIngresoRepository repoIngreso;
     private final IPacienteRepository repoPaciente;
-    private final Sesion sesion;
+    private final Sesion sesionActual;
     private final ColaAtencion cola;
 
 
-    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesion) {
+    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesionActual) {
         this.repoIngreso = repoIngreso;
         this.repoPaciente = repoPaciente;
-        this.sesion = sesion;
+        this.sesionActual = sesionActual;
         this.cola = new ColaAtencion();
 
     }
 
-
     public Ingreso registrarIngreso(IngresoRequest req) {
 
-        var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "El paciente no existe en el sistema y debe ser registrado antes del ingreso"));
+        if (req.getInforme() == null || req.getInforme().trim().isEmpty()) {
+            throw new CampoInvalidoException("informe", "no puede estar vacío ni contener solo espacios");
+        }
 
-        var enfermera = sesion.getEnfermera();
+        var paciente = repoPaciente.findByCuil(req.getCuilPaciente())
+                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: " + req.getCuilPaciente()));
+
+        var enfermera = sesionActual.getEnfermera();
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
         String informe = req.getInforme();
+
         Ingreso ingreso = new Ingreso(paciente, enfermera, nivel);
         ingreso.setDescripcion(informe);
         ingreso.setTemperatura(new Temperatura(req.getTemperatura()));
@@ -48,6 +53,7 @@ public class IngresoService {
                 (req.getFrecuenciaSistolica()),
                 (req.getFrecuenciaDiastolica())
         ));
+
         repoIngreso.save(ingreso);
         cola.agregar(ingreso);
         return ingreso;
