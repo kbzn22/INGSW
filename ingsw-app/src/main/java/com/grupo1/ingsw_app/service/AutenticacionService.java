@@ -47,9 +47,8 @@ public class AutenticacionService {
 
     /** obtiene el Usuario vinculado a una sesión */
     public Usuario requireSession(String sessionId) {
-        if (sessionId == null || sesion.getId() == null
-                || !sessionId.equals(sesion.getId())
-                || sesion.isExpired()) {
+        String currentId = sesion.getId();
+        if (sessionId == null || sesion.getId() == null || !sessionId.equals(sesion.getId()) || sesion.isExpired()) {
             throw new IllegalStateException("Sesión inválida o expirada");
         }
 
