@@ -7,11 +7,11 @@ public class Doctor extends Persona{
     private Usuario usuario;
 
     public Doctor(String nombre, String apellido, String cuil, String email, String matricula) {
-        super(new Cuil(cuil),nombre, apellido, email);
+        super(cuil,nombre, apellido, email);
         this.matricula = matricula;
     }
     public Doctor(String nombre, String apellido, String cuil, String email, String matricula, Usuario usuario) {
-        super(new Cuil(cuil),nombre, apellido, email);
+        super(cuil,nombre, apellido, email);
         this.matricula = matricula;
         this.usuario=usuario;
     }

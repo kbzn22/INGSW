@@ -228,7 +228,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
         assertTrue(estaEnCola, "El ingreso no está en la cola de atención");
     }
 
-    String cuilPacienteNoExistente;
+
 
     @Given("que no existe en el sistema el paciente con cuil {string}")
     public void queNoExisteEnElSistemaElPacienteConDni(String cuil) {
