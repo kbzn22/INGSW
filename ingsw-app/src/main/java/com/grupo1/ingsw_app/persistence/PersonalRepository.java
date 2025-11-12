@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Permite buscar por username, matrícula o CUIL sin duplicar código.
  */
 @Component
-public class PersonalRepository {
+public class PersonalRepository implements IPersonalRepository{
 
     // índices en memoria
     private final Map<String, Persona> byUsername = new ConcurrentHashMap<>();

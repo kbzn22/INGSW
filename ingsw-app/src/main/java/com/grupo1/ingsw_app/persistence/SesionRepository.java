@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SesionRepository {
+public class SesionRepository implements ISesionRepository{
     private final Map<String, Sesion> sessions = new ConcurrentHashMap<>();
 
     public void save(Sesion s){ sessions.put(s.getId(), s); }
