@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -63,43 +64,60 @@ public class IngresoRepository implements IIngresoRepository {
 
     // ---------- RowMapper: fila -> Ingreso (dominio)
 
-    private final RowMapper<Ingreso> mapper = (ResultSet rs, int rowNum) -> {
-        UUID id = (UUID) rs.getObject("id");
+    private final RowMapper<Ingreso> mapper = (rs, rowNum) -> {
+        UUID id = rs.getObject("id", UUID.class);
+
+        String cuilPac = rs.getString("cuil_paciente");
+        String cuilEnf = rs.getString("cuil_enfermera");
+
         int nivelNum = rs.getInt("nivel_emergencia");
-        NivelEmergencia nivel = NivelEmergencia.fromNumero(nivelNum);
+        String estadoStr = rs.getString("estado_ingreso");
+        String desc = rs.getString("descripcion");
 
-        EstadoIngreso estado = EstadoIngreso.valueOf(rs.getString("estado_ingreso"));
-        LocalDateTime fecha = rs.getTimestamp("fecha_ingreso").toLocalDateTime();
-        String descripcion = rs.getString("descripcion");
+        Timestamp ts = rs.getTimestamp("fecha_ingreso");
+        LocalDateTime fecha = ts != null ? ts.toLocalDateTime() : null;
 
-        // No hidratamos Paciente/Enfermera acá: se pueden resolver por CUIL en otros repos
-        Ingreso ingreso = new Ingreso(null, null, nivel);
+        // 🔹 TODOS los NUMERIC como BigDecimal
+        BigDecimal tempBd = rs.getBigDecimal("temperatura");
+        BigDecimal fcBd   = rs.getBigDecimal("frec_cardiaca");
+        BigDecimal frBd   = rs.getBigDecimal("frec_respiratoria");
+        BigDecimal sisBd  = rs.getBigDecimal("sistolica");
+        BigDecimal diaBd  = rs.getBigDecimal("diastolica");
+
+        // 🔹 Convertimos a tus value objects
+        Temperatura temp = null;
+        if (tempBd != null) {
+            temp = new Temperatura(tempBd.floatValue());
+        }
+
+        FrecuenciaCardiaca fc = null;
+        if (fcBd != null) {
+            fc = new FrecuenciaCardiaca(fcBd.doubleValue());
+        }
+
+        FrecuenciaRespiratoria fr = null;
+        if (frBd != null) {
+            fr = new FrecuenciaRespiratoria(frBd.doubleValue());
+        }
+
+        TensionArterial ta = null;
+        if (sisBd != null && diaBd != null) {
+            ta = new TensionArterial(sisBd.doubleValue(), diaBd.doubleValue());
+        }
+
+        // Por ahora reconstruyo Paciente solo con cuil (para la cola)
+        Paciente paciente = new Paciente(cuilPac, "");  // si querés, esto después lo cambiamos a repo
+        Enfermera enfermera = null;                     // lo mismo con cuilEnf
+
+        Ingreso ingreso = new Ingreso(paciente, enfermera, NivelEmergencia.fromNumero(nivelNum));
         ingreso.setId(id);
-        ingreso.setEstadoIngreso(estado);
+        ingreso.setEstadoIngreso(EstadoIngreso.valueOf(estadoStr));
+        ingreso.setDescripcion(desc);
         ingreso.setFechaIngreso(fecha);
-        ingreso.setDescripcion(descripcion);
-
-        // Temperatura
-        var temp = rs.getBigDecimal("temperatura");
-        if (temp != null) {
-            ingreso.setTemperatura(new Temperatura(temp.floatValue()));
-        }
-
-        // Frecuencias
-        Double fc = rs.getObject("frec_cardiaca", Double.class);
-        if (fc != null) ingreso.setFrecuenciaCardiaca(new FrecuenciaCardiaca(fc));
-
-        Double fr = rs.getObject("frec_respiratoria", Double.class);
-        if (fr != null) ingreso.setFrecuenciaRespiratoria(new FrecuenciaRespiratoria(fr));
-
-        Double sistolica = rs.getObject("sistolica", Double.class);
-        Double diastolica = rs.getObject("diastolica", Double.class);
-        if (sistolica != null && diastolica != null) {
-            ingreso.setTensionArterial(new TensionArterial(sistolica, diastolica));
-        }
-
-        // Si tu Ingreso luego necesita saber los CUIL, podés agregar campos extra
-        // o resolver en otro repo usando cuil_paciente / cuil_enfermera.
+        ingreso.setTemperatura(temp);
+        ingreso.setFrecuenciaCardiaca(fc);
+        ingreso.setFrecuenciaRespiratoria(fr);
+        ingreso.setTensionArterial(ta);
 
         return ingreso;
     };
@@ -182,6 +200,25 @@ public class IngresoRepository implements IIngresoRepository {
 
     @Override
     public List<Ingreso> findByEstadoPendiente() {
-        return jdbc.query(SQL_FIND_PENDIENTE, mapper);
+        String sql = """
+            SELECT
+              id,
+              cuil_paciente,
+              cuil_enfermera,
+              nivel_emergencia,
+              estado_ingreso,
+              descripcion,
+              fecha_ingreso,
+              temperatura,
+              frec_cardiaca,
+              frec_respiratoria,
+              sistolica,
+              diastolica
+            FROM ingreso
+            WHERE estado_ingreso = 'PENDIENTE'
+            ORDER BY fecha_ingreso ASC
+            """;
+
+        return jdbc.query(sql, mapper);
     }
 }
