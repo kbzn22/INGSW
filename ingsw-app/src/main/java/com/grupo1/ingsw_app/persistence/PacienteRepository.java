@@ -83,18 +83,22 @@ public class PacienteRepository implements IPacienteRepository {
         String obraNombre = rs.getString("obra_social_nombre");
         String numeroAfiliado = rs.getString("numero_afiliado");
 
-        ObraSocial obra = null;
-        Afiliado afiliado = null;
+        // --- CASO 1: Paciente minimalista (BDD) ---
+        // si no hay domicilio y no hay obra social → usar constructor simple
+        boolean sinDomicilio = calle == null && numero == null && localidad == null;
+        boolean sinObraSocial = obraId == null && numeroAfiliado == null;
 
+        if (sinDomicilio && sinObraSocial && apellido == null && email == null) {
+            return new Paciente(cuil, nombre);
+        }
+
+        // --- CASO 2: Paciente completo ---
+        ObraSocial obra = null;
         if (obraId != null && obraNombre != null) {
             obra = new ObraSocial(obraId, obraNombre);
         }
-        if (obra != null && numeroAfiliado != null) {
-            afiliado = new Afiliado(obra, numeroAfiliado);
-        }
 
-        // Construimos el paciente usando tu constructor “completo”
-        Paciente p = new Paciente(
+        return new Paciente(
                 cuil,
                 nombre,
                 apellido,
@@ -105,8 +109,8 @@ public class PacienteRepository implements IPacienteRepository {
                 obra,
                 numeroAfiliado
         );
-        return p;
     };
+
 
     // --------- Implementación de IPacienteRepository
 
@@ -177,10 +181,6 @@ public class PacienteRepository implements IPacienteRepository {
         );
     }
 
-    // método extra que usaban tus tests BDD
-    public void clear() {
-        jdbc.execute(SQL_CLEAR);
-    }
 }
 
 

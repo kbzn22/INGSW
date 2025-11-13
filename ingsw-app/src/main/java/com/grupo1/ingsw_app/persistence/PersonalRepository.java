@@ -166,13 +166,6 @@ public class PersonalRepository implements IPersonalRepository {
     }
 
     @Override
-    public void clear() {
-        // primero usuarios (por FK), luego personal
-        jdbc.execute(SQL_CLEAR_USUARIOS);
-        jdbc.execute(SQL_CLEAR_PERSONAL);
-    }
-
-    @Override
     public Optional<Persona> findByUsername(String username) {
         List<Persona> lista = jdbc.query(SQL_FIND_BY_USERNAME, mapperPersona, username);
         if (lista.isEmpty()) return Optional.empty();

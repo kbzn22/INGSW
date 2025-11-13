@@ -10,8 +10,6 @@ import java.util.Optional;
 public interface IPersonalRepository {
     public void save(Persona persona);
 
-    public void clear();
-
     public Optional<Persona> findByUsername(String username);
 
     public Optional<Persona> findByMatricula(String matricula);

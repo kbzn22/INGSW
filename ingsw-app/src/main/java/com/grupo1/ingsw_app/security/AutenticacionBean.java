@@ -10,16 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class AutenticacionBean {
 
     @Bean
-    PersonalRepository personalRepository() {
-        return new PersonalRepository();
-    }
-
-    @Bean
     AutenticacionService autenticacionService(
             Sesion sesion,
             PasswordEncoder encoder,
             PersonalRepository personal) {
-        AutenticacionService auth = new AutenticacionService(personal, sesion,encoder);
-        return auth;
+        return new AutenticacionService(personal, sesion, encoder);
     }
 }

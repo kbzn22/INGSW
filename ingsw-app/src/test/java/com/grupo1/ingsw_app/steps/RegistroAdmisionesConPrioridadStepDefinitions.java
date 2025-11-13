@@ -122,7 +122,6 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
-        pacienteRepo.clear();
         Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
         Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
         pacienteRepo.save(paciente);
@@ -232,7 +231,6 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @Given("que no existe en el sistema el paciente con cuil {string}")
     public void queNoExisteEnElSistemaElPacienteConDni(String cuil) {
-        pacienteRepo.clear();
         pacienteActual = null;
         cuilPacienteNoExistente = cuil;
     }
