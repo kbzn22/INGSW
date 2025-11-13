@@ -15,4 +15,5 @@ public class ObraSocial {
     public String getNombre(){
         return this.nombre;
     }
+    public UUID getId(){return this.id;}
 }

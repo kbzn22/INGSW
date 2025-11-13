@@ -1,20 +1,95 @@
+// src/main/java/com/grupo1/ingsw_app/persistence/SesionRepository.java
 package com.grupo1.ingsw_app.persistence;
 
+import com.grupo1.ingsw_app.domain.Doctor;
+import com.grupo1.ingsw_app.domain.Enfermera;
+import com.grupo1.ingsw_app.domain.Persona;
 import com.grupo1.ingsw_app.security.Sesion;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-
-import java.util.Map;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class SesionRepository implements ISesionRepository{
-    private final Map<String, Sesion> sessions = new ConcurrentHashMap<>();
+@Repository
+public class SesionRepository implements ISesionRepository {
 
-    public void save(Sesion s){ sessions.put(s.getId(), s); }
-    public Optional<Sesion> find(String id){
-        Sesion s = sessions.get(id);
-        if (s == null || s.isExpired()) return Optional.empty();
+    private final JdbcTemplate jdbc;
+    private final PersonalRepository personalRepo;
+
+    public SesionRepository(JdbcTemplate jdbc, PersonalRepository personalRepo) {
+        this.jdbc = jdbc;
+        this.personalRepo = personalRepo;
+    }
+
+    private static final String SQL_UPSERT = """
+        INSERT INTO sesion (id, cuil_persona, expires_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT (id) DO UPDATE SET
+            cuil_persona = EXCLUDED.cuil_persona,
+            expires_at   = EXCLUDED.expires_at
+        """;
+
+    private static final String SQL_FIND = """
+        SELECT id, cuil_persona, expires_at
+        FROM sesion
+        WHERE id = ?
+        """;
+
+    private static final String SQL_DELETE = """
+        DELETE FROM sesion
+        WHERE id = ?
+        """;
+
+    @Override
+    public void save(Sesion s) {
+        jdbc.update(SQL_UPSERT,
+                s.getId(),
+                s.getPersona().getCuil().getValor(),
+                Timestamp.from(s.getExpiresAt())
+        );
+    }
+
+    @Override
+    public Optional<Sesion> find(String id) {
+        List<Sesion> list = jdbc.query(SQL_FIND, (rs, rowNum) -> {
+
+            String cuil    = rs.getString("cuil_persona");
+            Instant expires = rs.getTimestamp("expires_at").toInstant();
+
+            var persona = personalRepo.findByCuil(cuil).orElse(null);
+            if (persona == null) return null;
+
+            // OJO: acá NO regeneramos nada, solo reconstruimos:
+            // username lo sacamos de la persona como hace setUsuario(...)
+            String username;
+            if (persona instanceof Doctor d && d.getUsuario() != null) {
+                username = d.getUsuario().getUsuario();
+            } else if (persona instanceof Enfermera e && e.getUsuario() != null) {
+                username = e.getUsuario().getUsuario();
+            } else {
+                return null;
+            }
+
+            return Sesion.restaurar(id, username, persona, expires);
+        }, id);
+
+        if (list.isEmpty() || list.get(0) == null) return Optional.empty();
+
+        Sesion s = list.get(0);
+        if (s.isExpired()) {
+            delete(id);              // igual que antes: caducada → la volás
+            return Optional.empty();
+        }
+
         return Optional.of(s);
     }
-    public void delete(String id){ sessions.remove(id); }
+
+
+    @Override
+    public void delete(String id) {
+        jdbc.update(SQL_DELETE, id);
+    }
 }

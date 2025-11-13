@@ -25,6 +25,7 @@ public class Sesion {
     private Instant expiresAt;
     private Persona persona;
 
+
     // ---- API de gestión ----
     public void iniciar(String usuario, Persona persona, long horas) {
         this.id = nuevoId();
@@ -89,5 +90,14 @@ public class Sesion {
         byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public static Sesion restaurar(String id, String usuario, Persona persona, Instant expiresAt) {
+        Sesion s = new Sesion();
+        s.id = id;
+        s.usuario = usuario;
+        s.persona = persona;
+        s.expiresAt = expiresAt;
+        return s;
     }
 }
