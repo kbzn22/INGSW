@@ -3,7 +3,6 @@ package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.Doctor;
 import com.grupo1.ingsw_app.domain.Enfermera;
-import com.grupo1.ingsw_app.domain.Persona;
 import com.grupo1.ingsw_app.security.Sesion;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -42,9 +41,14 @@ public class SesionRepository implements ISesionRepository {
         DELETE FROM sesion
         WHERE id = ?
         """;
+    private static final String SQL_DELETE_BY_CUIL = """
+        DELETE FROM sesion
+        WHERE cuil_persona = ?
+        """;
 
     @Override
     public void save(Sesion s) {
+        System.out.println("Sesion ID: " + s.getId());
         jdbc.update(SQL_UPSERT,
                 s.getId(),
                 s.getPersona().getCuil().getValor(),
@@ -86,10 +90,15 @@ public class SesionRepository implements ISesionRepository {
 
         return Optional.of(s);
     }
-
-
     @Override
     public void delete(String id) {
-        jdbc.update(SQL_DELETE, id);
+        System.out.println("DEBUG delete sesion, id=[" + id + "] len=" + id.length());
+        int rows = jdbc.update(SQL_DELETE, id);
+        System.out.println("DEBUG filas borradas = " + rows);
     }
+    @Override
+    public void deleteByPersona(String cuilPersona) {
+        jdbc.update(SQL_DELETE_BY_CUIL, cuilPersona);
+    }
+
 }

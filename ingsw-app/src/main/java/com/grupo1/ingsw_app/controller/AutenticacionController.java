@@ -33,6 +33,26 @@ public class AutenticacionController {
     public ResponseEntity<Void> loginForm(@RequestParam String username, @RequestParam String password) {
         return loginJson(new LoginReq(username, password));
     }
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @CookieValue(value = "SESSION_ID", required = false) String sid) {
+
+        // aunque sid sea null, nuestro service ahora lo tolera
+        auth.logout(sid);
+
+        // armamos cookie expirada para borrar en navegador
+        ResponseCookie cookie = ResponseCookie.from("SESSION_ID", "")
+                .httpOnly(true)
+                .secure(false) // true si usás HTTPS
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
+    }
 
     public record LoginReq(String username, String password) {}
 }

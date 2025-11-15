@@ -39,6 +39,8 @@ public class AutenticacionService {
                 && !cuenta.getPassword().equals(rawPassword)) {
             throw new IllegalArgumentException("La contraseña es incorrecta");
         }
+        String cuilPersona = persona.getCuil().getValor();
+        sesionRepo.deleteByPersona(cuilPersona);
 
         sesion.iniciar(cuenta.getUsuario(), persona, 2L); // 2 horas
         sesionRepo.save(sesion);
@@ -59,4 +61,26 @@ public class AutenticacionService {
 
         throw new IllegalStateException("Tipo de personal no reconocido: " + persona.getClass().getName());
     }
+    public void logout(String sid) {
+        // Si no viene SID, no hacemos nada
+        if (sid == null || sid.isBlank()) {
+            return;
+        }
+
+        // 1) Siempre intento borrar en DB por SID
+        try {
+            sesionRepo.delete(sid);
+        } catch (Exception e) {
+            // si querés loguear, bien, pero no tiraría 500 por esto
+            // log.warn("Error borrando sesión {}", sid, e);
+        }
+
+        // 2) Si la sesión en memoria coincide, la limpio
+        String current = sesion.getId();
+        if (current != null && current.equals(sid)) {
+            sesion.limpiar();
+        }
+    }
+
+
 }
