@@ -15,7 +15,7 @@ public class IngresoRequest {
 
     public IngresoRequest(
             String cuilPaciente,
-            String cuilEnfermera,
+          //  String cuilEnfermera,
             String informe,
             Float temperatura,
             Double frecuenciaCardiaca,

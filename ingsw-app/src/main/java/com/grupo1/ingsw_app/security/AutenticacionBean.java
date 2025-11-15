@@ -1,6 +1,7 @@
 package com.grupo1.ingsw_app.security;
 
-import com.grupo1.ingsw_app.persistence.PersonalRepository;
+import com.grupo1.ingsw_app.persistence.IPersonalRepository;
+import com.grupo1.ingsw_app.persistence.ISesionRepository;
 import com.grupo1.ingsw_app.service.AutenticacionService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,8 @@ public class AutenticacionBean {
     AutenticacionService autenticacionService(
             Sesion sesion,
             PasswordEncoder encoder,
-            PersonalRepository personal) {
-        return new AutenticacionService(personal, sesion, encoder);
+            IPersonalRepository personal,
+            ISesionRepository sesionRepository) {
+        return new AutenticacionService(personal, sesion, encoder,sesionRepository);
     }
 }

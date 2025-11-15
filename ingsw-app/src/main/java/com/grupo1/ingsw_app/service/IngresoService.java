@@ -41,6 +41,7 @@ public class IngresoService {
                 .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: " + req.getCuilPaciente()));
 
         var enfermera = sesionActual.getEnfermera();
+
         var nivel = NivelEmergencia.fromNumero(req.getNivel());
         String informe = req.getInforme();
 

@@ -27,7 +27,7 @@ public class IngresoController {
     public ResponseEntity<?> registrarIngreso(@RequestBody Map<String, Object> body) {
 
         String cuilPaciente         = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
-        String cuilEnfermera        = asString(body.get("cuilEnfermera"), "cuilEnfermera", "es obligatorio indicar el CUIL de la enfermera");
+        //String cuilEnfermera        = asString(body.get("cuilEnfermera"), "cuilEnfermera", "es obligatorio indicar el CUIL de la enfermera");
         String informe              = asString(body.get("informe"), "informe", "no puede estar vacío ni contener solo espacios");
         Float  temperatura           = parseFloat(body.get("temperatura"), "temperatura", "debe tener valores positivos válidos (grados Celsius)");
         Double frecuenciaCardiaca    = parseDouble(body.get("frecuenciaCardiaca"), "frecuenciaCardiaca", "debe tener valores positivos válidos (latidos por minuto)");
@@ -38,7 +38,7 @@ public class IngresoController {
 
         IngresoRequest req = new IngresoRequest(
                 cuilPaciente,
-                cuilEnfermera,
+                //cuilEnfermera,
                 informe,
                 temperatura,
                 frecuenciaCardiaca,

@@ -2,6 +2,7 @@ package com.grupo1.ingsw_app.service;
 
 import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.persistence.IPersonalRepository;
+import com.grupo1.ingsw_app.persistence.ISesionRepository;
 import com.grupo1.ingsw_app.security.Sesion;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,11 +14,13 @@ public class AutenticacionService {
     private final IPersonalRepository personalRepo;
     private final Sesion sesion;
     private final PasswordEncoder encoder;
+    private final ISesionRepository sesionRepo;
 
-    public AutenticacionService(IPersonalRepository personalRepo, Sesion sesion, PasswordEncoder encoder) {
+    public AutenticacionService(IPersonalRepository personalRepo, Sesion sesion, PasswordEncoder encoder,ISesionRepository sesionRepo) {
         this.personalRepo = personalRepo;
         this.sesion = sesion;
         this.encoder = encoder;
+        this.sesionRepo = sesionRepo;
     }
 
     /** login: valida usuario/password, crea sesión y devuelve id */
@@ -37,9 +40,8 @@ public class AutenticacionService {
             throw new IllegalArgumentException("La contraseña es incorrecta");
         }
 
-
         sesion.iniciar(cuenta.getUsuario(), persona, 2L); // 2 horas
-
+        sesionRepo.save(sesion);
         return sesion.getId();
     }
 
