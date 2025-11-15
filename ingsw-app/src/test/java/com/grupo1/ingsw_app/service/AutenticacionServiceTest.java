@@ -4,7 +4,8 @@ import com.grupo1.ingsw_app.domain.Doctor;
 import com.grupo1.ingsw_app.domain.Enfermera;
 import com.grupo1.ingsw_app.domain.Persona;
 import com.grupo1.ingsw_app.domain.Usuario;
-import com.grupo1.ingsw_app.persistence.PersonalRepository;
+import com.grupo1.ingsw_app.persistence.IPersonalRepository;
+import com.grupo1.ingsw_app.persistence.ISesionRepository;
 import com.grupo1.ingsw_app.security.Sesion;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,9 +25,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AutenticacionServiceTest {
 
-    @Mock private PersonalRepository personalRepo;
+    @Mock private IPersonalRepository personalRepo;
     @Mock private Sesion sesion;
     @Mock private PasswordEncoder encoder;
+    @Mock private ISesionRepository sesionRepo;
 
     @InjectMocks
     private AutenticacionService auth;
@@ -56,11 +58,14 @@ class AutenticacionServiceTest {
         assertThat(sid).isEqualTo("SID123");
 
 
-        InOrder in = inOrder(personalRepo, encoder, sesion);
+        InOrder in = inOrder(personalRepo, encoder, sesion, sesionRepo);
         in.verify(personalRepo).findByUsername("delvallem");
         in.verify(encoder).matches("contr123", d.getUsuario().getPassword());
         in.verify(sesion).iniciar(eq("delvallem"), eq(d), eq(2L));
+        in.verify(sesionRepo).save(sesion);
         in.verify(sesion).getId();
+        in.verifyNoMoreInteractions();
+
         in.verifyNoMoreInteractions();
     }
 
@@ -94,7 +99,7 @@ class AutenticacionServiceTest {
     }
 
     @Test
-    @DisplayName("requireSession OK: valida el SID vigente y retorna el Usuario embebido")
+    @DisplayName("requireSession OK: valida el SID vigente y retorna el Usuario")
     void require_session_ok() {
         // simulamos que ya hay una sesión con ese id y no está expirada
         when(sesion.getId()).thenReturn("SID_OK");
@@ -108,7 +113,8 @@ class AutenticacionServiceTest {
 
         assertThat(u.getUsuario()).isEqualTo("juareze");
 
-        InOrder in = inOrder(sesion);
+        InOrder in = inOrder(sesion, sesionRepo);
+
         in.verify(sesion, times(3)).getId();
         in.verify(sesion).isExpired();
         in.verify(sesion).getPersona();
