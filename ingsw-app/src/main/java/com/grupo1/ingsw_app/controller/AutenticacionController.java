@@ -1,6 +1,5 @@
 package com.grupo1.ingsw_app.controller;
 
-
 import com.grupo1.ingsw_app.service.AutenticacionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

@@ -1,7 +1,5 @@
 package com.grupo1.ingsw_app.domain;
 
-import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
-
 public class Doctor extends Persona{
     private String matricula;
     private Usuario usuario;

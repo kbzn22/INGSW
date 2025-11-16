@@ -23,4 +23,28 @@ public class Domicilio {
         this.numero = numero;
         this.localidad = localidad.trim();
     }
+    public String getCalle() {
+        return calle;
+    }
+
+    public Integer getNumero() {
+        return numero;
+    }
+
+    public String getLocalidad() {
+        return localidad;
+    }
+
+    public void setCalle(String calle) {
+        this.calle = calle;
+    }
+
+    public void setNumero(Integer numero) {
+        this.numero = numero;
+    }
+
+    public void setLocalidad(String localidad) {
+        this.localidad = localidad;
+    }
+
 }
