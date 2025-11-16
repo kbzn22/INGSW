@@ -47,14 +47,26 @@ public class AutenticacionService {
         return sesion.getId();
     }
 
-    /** obtiene el Usuario vinculado a una sesión */
     public Usuario requireSession(String sessionId) {
-        String currentId = sesion.getId();
-        if (sessionId == null || sesion.getId() == null || !sessionId.equals(sesion.getId()) || sesion.isExpired()) {
+        if (sessionId == null || sessionId.isBlank()) {
             throw new IllegalStateException("Sesión inválida o expirada");
         }
 
-        Persona persona = sesion.getPersona();  // la persona autenticada en esta sesión
+        // por si llega con comillas de algún lado
+        String cleanId = sessionId.trim();
+        if (cleanId.startsWith("\"") && cleanId.endsWith("\"") && cleanId.length() > 1) {
+            cleanId = cleanId.substring(1, cleanId.length() - 1);
+        }
+
+        var sesionOpt = sesionRepo.find(cleanId);
+        if (sesionOpt.isEmpty()) {
+            throw new IllegalStateException("Sesión inválida o expirada");
+        }
+
+        Sesion s = sesionOpt.get();
+
+
+        Persona persona = s.getPersona();
 
         if (persona instanceof Doctor d)    return d.getUsuario();
         if (persona instanceof Enfermera e) return e.getUsuario();

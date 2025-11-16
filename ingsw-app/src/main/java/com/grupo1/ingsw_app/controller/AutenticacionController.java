@@ -1,11 +1,10 @@
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.service.AutenticacionService;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -13,10 +12,6 @@ public class AutenticacionController {
     private final AutenticacionService auth;
 
     public AutenticacionController(AutenticacionService auth) { this.auth = auth; }
-
-    // Para demo: sembramos usuarios al iniciar la app (constructor o @PostConstruct)
-    // auth.register("delvallem","contr123","20-30574930-4", Set.of("ADMIN"));
-    // auth.register("juareze","contr456","20-12547856-4", Set.of("USER"));
 
     @PostMapping("/login")
     public ResponseEntity<Void> loginJson(@RequestBody LoginReq req) {
@@ -52,7 +47,29 @@ public class AutenticacionController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
     }
+    @GetMapping("/me")
+    public ResponseEntity<?> me(
+            @CookieValue(name = "SESSION_ID", required = false) String sid) {
 
+        if (sid == null || sid.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            var usuario = auth.requireSession(sid);
+
+            // devolvés solo lo que te interese del usuario
+            var dto = Map.of(
+                    "username", usuario.getUsuario()
+
+            );
+
+            return ResponseEntity.ok(dto);
+        } catch (IllegalStateException ex) {
+            System.out.println("=============================================="+ex.getMessage()+"==============================================");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
     public record LoginReq(String username, String password) {}
 }
 

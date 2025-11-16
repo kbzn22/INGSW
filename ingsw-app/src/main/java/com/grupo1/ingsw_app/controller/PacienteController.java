@@ -31,38 +31,38 @@ public class PacienteController {
     }
 
     @PostMapping
-    public ResponseEntity<?> registrarPaciente(@RequestBody Map<String, Object> body) {
+        public ResponseEntity<?> registrarPaciente(@RequestBody Map<String, Object> body) {
 
-        String cuil         = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
-        String nombre       = asString(body.get("nombre"), "nombre", "no puede estar vacío");
-        String apellido     = asString(body.get("apellido"), "apellido", "no puede estar vacío");
-        String email        = asString(body.get("email"), "email", "no puede estar vacío");
-        String calle        = asString(body.get("calle"), "calle", "no puede estar vacía");
-        Integer numero       = parseInteger(body.get("numero"), "numero", "no puede estar vacía");
-        String localidad    = asString(body.get("localidad"), "localidad", "no puede estar vacía");
+            String cuil         = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
+            String nombre       = asString(body.get("nombre"), "nombre", "no puede estar vacío");
+            String apellido     = asString(body.get("apellido"), "apellido", "no puede estar vacío");
+            String email        = asString(body.get("email"), "email", "no puede estar vacío");
+            String calle        = asString(body.get("calle"), "calle", "no puede estar vacía");
+            Integer numero       = parseInteger(body.get("numero"), "numero", "no puede estar vacía");
+            String localidad    = asString(body.get("localidad"), "localidad", "no puede estar vacía");
 
-        UUID idObraSocial = null;
-        String numeroAfiliado = null;
+            UUID idObraSocial = null;
+            String numeroAfiliado = null;
 
-        Object idObraSocialRaw = body.get("idObraSocial");
-        if (idObraSocialRaw != null) {
-            idObraSocial = parseUUID(idObraSocialRaw, "idObraSocial", "debe ser un UUID válido");
-            numeroAfiliado = asString(body.get("numeroAfiliado"), "numeroAfiliado", "es obligatorio si hay obra social");
+            Object idObraSocialRaw = body.get("idObraSocial");
+            if (idObraSocialRaw != null) {
+                idObraSocial = parseUUID(idObraSocialRaw, "idObraSocial", "debe ser un UUID válido");
+                numeroAfiliado = asString(body.get("numeroAfiliado"), "numeroAfiliado", "es obligatorio si hay obra social");
+            }
+
+            PacienteRequest req = new PacienteRequest(
+                    cuil,
+                    nombre,
+                    apellido, email,
+                    calle,
+                    numero,
+                    localidad,
+                    idObraSocial,
+                    numeroAfiliado
+            );
+
+            var paciente = service.registrarPaciente(req);
+            return ResponseEntity.status(HttpStatus.CREATED).body(paciente);
+
         }
-
-        PacienteRequest req = new PacienteRequest(
-                cuil,
-                nombre,
-                apellido, email,
-                calle,
-                numero,
-                localidad,
-                idObraSocial,
-                numeroAfiliado
-        );
-
-        var paciente = service.registrarPaciente(req);
-        return ResponseEntity.status(HttpStatus.CREATED).body(paciente);
-
-    }
 }
