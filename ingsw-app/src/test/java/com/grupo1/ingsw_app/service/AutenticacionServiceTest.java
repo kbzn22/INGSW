@@ -102,50 +102,56 @@ class AutenticacionServiceTest {
     @DisplayName("requireSession OK: valida el SID vigente y retorna el Usuario")
     void require_session_ok() {
         // simulamos que ya hay una sesión con ese id y no está expirada
-        when(sesion.getId()).thenReturn("SID_OK");
-        when(sesion.isExpired()).thenReturn(false);
+        var e = enfermera("juareze", "{bcrypt}hash");
 
-        // y que la persona guardada es una Enfermera con Usuario "juareze"
-        var e = enfermera("juareze", "{bcrypt}");
-        when(sesion.getPersona()).thenReturn(e);
+        // Sesion que viene del repositorio
+        Sesion sesionPersistida = mock(Sesion.class);
+        when(sesionPersistida.getPersona()).thenReturn(e);
+
+        when(sesionRepo.find("SID_OK")).thenReturn(Optional.of(sesionPersistida));
 
         var u = auth.requireSession("SID_OK");
 
         assertThat(u.getUsuario()).isEqualTo("juareze");
 
-        InOrder in = inOrder(sesion, sesionRepo);
-
-        in.verify(sesion, times(3)).getId();
-        in.verify(sesion).isExpired();
-        in.verify(sesion).getPersona();
+        InOrder in = inOrder(sesionRepo, sesionPersistida);
+        in.verify(sesionRepo).find("SID_OK");
+        in.verify(sesionPersistida).getPersona();
         in.verifyNoMoreInteractions();
     }
 
     @Test
     @DisplayName("requireSession con SID inválido/expirado → IllegalStateException")
     void require_session_invalida() {
-        when(sesion.getId()).thenReturn("SID_REAL");
-
+        when(sesionRepo.find("OTRO_SID")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> auth.requireSession("OTRO_SID"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Sesión inválida o expirada");
+
+        verify(sesionRepo).find("OTRO_SID");
+        verifyNoMoreInteractions(sesionRepo);
+        verifyNoInteractions(sesion);
     }
 
     @Test
     @DisplayName("requireSession con persona de tipo desconocido → IllegalStateException explícita")
     void require_session_tipo_desconocido() {
-        when(sesion.getId()).thenReturn("SID_X");
-        when(sesion.isExpired()).thenReturn(false);
-
-        // creamos un subtipo anónimo de Persona (sin Doctor/Enfermera) para forzar el error
         Persona rara = new Persona("20-00000000-0",
                 "Foo", "Bar", "foo@bar.com") {};
-        when(sesion.getPersona()).thenReturn(rara);
+
+        Sesion sesionPersistida = mock(Sesion.class);
+        when(sesionPersistida.getPersona()).thenReturn(rara);
+
+        when(sesionRepo.find("SID_X")).thenReturn(Optional.of(sesionPersistida));
 
         assertThatThrownBy(() -> auth.requireSession("SID_X"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Tipo de personal no reconocido");
+
+        verify(sesionRepo).find("SID_X");
+        verify(sesionPersistida).getPersona();
+        verifyNoMoreInteractions(sesionRepo, sesionPersistida);
     }
     @Test
     @DisplayName("login OK: elimina sesiones previas del usuario, inicia y persiste nueva sesión")

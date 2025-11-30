@@ -6,11 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.grupo1.ingsw_app.IngswAppApplication;
 
 @CucumberContextConfiguration
-@SpringBootTest(
-        classes = IngswAppApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-
 public class CucumberSpringConfiguration {
 }

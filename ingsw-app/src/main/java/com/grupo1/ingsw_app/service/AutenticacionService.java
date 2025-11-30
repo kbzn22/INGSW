@@ -74,12 +74,12 @@ public class AutenticacionService {
         throw new IllegalStateException("Tipo de personal no reconocido: " + persona.getClass().getName());
     }
     public void logout(String sid) {
-        // Si no viene SID, no hacemos nada
+
         if (sid == null || sid.isBlank()) {
             return;
         }
 
-        // 1) Siempre intento borrar en DB por SID
+
         try {
             sesionRepo.delete(sid);
         } catch (Exception e) {

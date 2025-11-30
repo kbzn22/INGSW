@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static com.grupo1.ingsw_app.controller.helpers.RequestParser.*;
 
@@ -26,19 +27,20 @@ public class IngresoController {
     @PostMapping
     public ResponseEntity<?> registrarIngreso(@RequestBody Map<String, Object> body) {
 
-        String cuilPaciente         = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
-        //String cuilEnfermera        = asString(body.get("cuilEnfermera"), "cuilEnfermera", "es obligatorio indicar el CUIL de la enfermera");
-        String informe              = asString(body.get("informe"), "informe", "no puede estar vacío ni contener solo espacios");
+        String cuilPaciente          = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
+        String informe               = asString(body.get("informe"), "informe", "no puede estar vacío ni contener solo espacios");
         Float  temperatura           = parseFloat(body.get("temperatura"), "temperatura", "debe tener valores positivos válidos (grados Celsius)");
         Double frecuenciaCardiaca    = parseDouble(body.get("frecuenciaCardiaca"), "frecuenciaCardiaca", "debe tener valores positivos válidos (latidos por minuto)");
         Double frecuenciaRespiratoria= parseDouble(body.get("frecuenciaRespiratoria"), "frecuenciaRespiratoria", "debe tener valores positivos válidos (respiraciones por minuto)");
-        Double frecuenciaSistolica   = parseDouble(body.get("frecuenciaSistolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)");
-        Double frecuenciaDiastolica  = parseDouble(body.get("frecuenciaDiastolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)");
+        Double frecuenciaSistolica   = parseDouble(body.get("frecuenciaSistolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)");
+        Double frecuenciaDiastolica  = parseDouble(body.get("frecuenciaDiastolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)");
         Integer nivel                = parseInteger(body.get("nivel"), "nivel", "la prioridad ingresada no existe o es nula");
+
+        // ===== Obra social (opcional) =====
+
 
         IngresoRequest req = new IngresoRequest(
                 cuilPaciente,
-                //cuilEnfermera,
                 informe,
                 temperatura,
                 frecuenciaCardiaca,
@@ -46,6 +48,7 @@ public class IngresoController {
                 frecuenciaSistolica,
                 frecuenciaDiastolica,
                 nivel
+
         );
 
         var ingreso = service.registrarIngreso(req);

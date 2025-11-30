@@ -1,18 +1,12 @@
-CREATE DATABASE ingsw_app;
 
 
--- ============================================================
--- 1) Tipo ENUM para EstadoIngreso (EN_PROCESO, FINALIZADO, PENDIENTE)
--- ============================================================
-DO $$
+DO '
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_type WHERE typname = 'estado_ingreso'
-    ) THEN
-CREATE TYPE estado_ingreso AS ENUM ('EN_PROCESO','FINALIZADO','PENDIENTE');
-END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = ''estado_ingreso'') THEN
+        CREATE TYPE estado_ingreso AS ENUM (''EN_PROCESO'',''FINALIZADO'',''PENDIENTE'');
+    END IF;
 END
-$$;
+';
 
 -- ============================================================
 -- 2) Tabla OBRA_SOCIAL
