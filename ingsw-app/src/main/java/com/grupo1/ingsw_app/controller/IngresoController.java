@@ -1,14 +1,16 @@
 package com.grupo1.ingsw_app.controller;
 
+import com.grupo1.ingsw_app.dtos.ColaItemDTO;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
+import com.grupo1.ingsw_app.dtos.PacienteEnAtencionDTO;
+import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
+import com.grupo1.ingsw_app.service.AtencionService;
 import com.grupo1.ingsw_app.service.IngresoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,10 +20,13 @@ import static com.grupo1.ingsw_app.controller.helpers.RequestParser.*;
 @RequestMapping("/api/ingresos")
 public class IngresoController {
 
-    private final IngresoService service;
+    private final IngresoService ingresoService;
+    private final AtencionService atencionService;
 
-    public IngresoController(IngresoService service) {
-        this.service = service;
+    public IngresoController(IngresoService ingresoService,
+                                   AtencionService atencionService) {
+        this.ingresoService = ingresoService;
+        this.atencionService = atencionService;
     }
 
     @PostMapping
@@ -51,8 +56,24 @@ public class IngresoController {
 
         );
 
-        var ingreso = service.registrarIngreso(req);
+        var ingreso = ingresoService.registrarIngreso(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
+    }
+    @GetMapping("/resumen")
+    public ResumenColaDTO getResumen() {
+        return ingresoService.obtenerResumenCola();
+    }
+    @GetMapping("/cola")
+    public List<ColaItemDTO> getCola() {
+        return ingresoService.obtenerColaDTO();
+    }
+
+    // GET /api/ingresos/en-atencion
+    @GetMapping("/en-atencion")
+    public ResponseEntity<PacienteEnAtencionDTO> getEnAtencion() {
+        return atencionService.obtenerPacienteEnAtencion()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
 

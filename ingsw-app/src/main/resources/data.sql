@@ -88,3 +88,39 @@ ON CONFLICT (username) DO NOTHING;
 INSERT INTO usuario_personal (username, password_hash, cuil_personal)
 VALUES ('lopeza', '$2a$10$.....hash_ana', '23-32222333-9')
 ON CONFLICT (username) DO NOTHING;
+-- ========================
+-- INGRESOS DE PRUEBA
+-- ========================
+INSERT INTO ingreso (
+    id, cuil_paciente, cuil_enfermera, nivel_emergencia,
+    estado_ingreso, descripcion, fecha_ingreso,
+    temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
+)
+VALUES
+    -- PENDIENTES
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1','20-44555000-4','20-12547856-4',3,
+     'PENDIENTE','Dolor de cabeza',NOW(),37.0,80,18,120,80),
+
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2','20-44666000-4','20-12547856-4',5,
+     'PENDIENTE','Fuerte dolor abdominal',NOW(),38.2,110,22,140,90),
+
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3','27-44888000-3','20-12547856-4',1,
+     'PENDIENTE','Corte leve',NOW(),36.7,75,20,118,78),
+
+    -- UNO EN PROCESO (ya siendo atendido)
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4','20-44555000-4','20-12547856-4',4,
+     'EN_PROCESO','Fractura brazo',NOW(),37.5,95,19,130,85)
+ON CONFLICT DO NOTHING;
+
+
+-- ========================
+-- ATENCIÓN PARA EL QUE ESTÁ EN PROCESO
+-- ========================
+INSERT INTO atencion (id, ingreso_id, cuil_doctor, informe, fecha_atencion)
+VALUES
+    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4',
+     '20-30111222-6',
+     'Atención inicial realizada',
+     NOW())
+ON CONFLICT DO NOTHING;

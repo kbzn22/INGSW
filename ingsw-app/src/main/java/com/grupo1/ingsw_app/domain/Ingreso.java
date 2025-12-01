@@ -20,6 +20,16 @@ public class Ingreso {
     TensionArterial tensionArterial;
     FrecuenciaCardiaca frecuenciaCardiaca;
     FrecuenciaRespiratoria frecuenciaRespiratoria;
+    // dentro de Ingreso
+    private Atencion atencion;
+
+    public Ingreso() {
+
+    }
+
+    public Atencion getAtencion() { return atencion; }
+    public void setAtencion(Atencion atencion) { this.atencion = atencion; }
+
 
     public Ingreso(Paciente paciente, Enfermera enfermera, NivelEmergencia nivelEmergencia) {
         this.paciente = paciente;

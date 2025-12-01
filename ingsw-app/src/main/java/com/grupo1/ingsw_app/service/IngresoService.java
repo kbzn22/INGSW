@@ -1,10 +1,13 @@
 package com.grupo1.ingsw_app.service;
 
 import com.grupo1.ingsw_app.domain.ColaAtencion;
+import com.grupo1.ingsw_app.domain.EstadoIngreso;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
+import com.grupo1.ingsw_app.dtos.ColaItemDTO;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
+import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistence.IIngresoRepository;
@@ -69,6 +72,28 @@ public class IngresoService {
         }
 
         return cola;
+    }
+    public ResumenColaDTO obtenerResumenCola() {
+        int pendientes  = repoIngreso.countByEstado(EstadoIngreso.PENDIENTE);
+        int enAtencion  = repoIngreso.countByEstado(EstadoIngreso.EN_PROCESO);
+        int finalizados = repoIngreso.countByEstado(EstadoIngreso.FINALIZADO);
+
+        return new ResumenColaDTO(pendientes, enAtencion, finalizados);
+    }
+
+    public List<ColaItemDTO> obtenerColaDTO() {
+        var ingresos = repoIngreso.findByEstadoPendiente(); // ya lo tenés
+        return ingresos.stream()
+                .map(ing -> new ColaItemDTO(
+                        ing.getId(),
+                        ing.getPaciente().getNombre(),
+                        ing.getPaciente().getApellido(),// o nombre + apellido
+                        ing.getPaciente().getCuil().getValor(),
+                        ing.getNivelEmergencia().getNumero(),
+                        ing.getEstadoIngreso().name(),
+                        ing.getFechaIngreso()
+                ))
+                .toList();
     }
 
 }
