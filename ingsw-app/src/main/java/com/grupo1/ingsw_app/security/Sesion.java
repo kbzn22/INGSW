@@ -61,6 +61,10 @@ public class Sesion {
         if (persona instanceof Enfermera e) return e;
         throw new SecurityException("Se requiere rol ENFERMERIA");
     }
+    public Doctor getDoctor() {
+        if (persona instanceof Doctor d) return d;
+        throw new SecurityException("Se requiere rol DOCTOR");
+    }
 
     public void setUsuario(Persona persona) {
         if (persona == null)

@@ -61,6 +61,49 @@ public class IngresoRepository implements IIngresoRepository {
         WHERE estado_ingreso = 'PENDIENTE'
         ORDER BY fecha_ingreso ASC
         """;
+    private static final String SQL_FIND_BY_ID = """
+        SELECT
+          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
+          descripcion, fecha_ingreso,
+          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
+        FROM ingreso
+        WHERE id = ?
+        """;
+
+    private static final String SQL_FIND_BY_ESTADO = """
+        SELECT
+          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
+          descripcion, fecha_ingreso,
+          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
+        FROM ingreso
+        WHERE estado_ingreso = ?
+        ORDER BY fecha_ingreso ASC
+        """;
+
+    private static final String SQL_FIND_EN_PROCESO_FIRST = """
+        SELECT
+          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
+          descripcion, fecha_ingreso,
+          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
+        FROM ingreso
+        WHERE estado_ingreso = 'EN_PROCESO'
+        ORDER BY fecha_ingreso ASC
+        LIMIT 1
+        """;
+    private static final String SQL_COUNT_BY_ESTADO =
+            "SELECT COUNT(*) FROM ingreso WHERE estado_ingreso = ?";
+
+    private static final String SQL_FIND_EN_ATENCION = """
+    SELECT
+      id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
+      descripcion, fecha_ingreso,
+      temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
+    FROM ingreso
+    WHERE estado_ingreso = 'EN_PROCESO'
+    ORDER BY fecha_ingreso ASC
+    LIMIT 1
+    """;
+
 
     // ---------- RowMapper: fila -> Ingreso (dominio)
 
@@ -221,4 +264,32 @@ public class IngresoRepository implements IIngresoRepository {
 
         return jdbc.query(sql, mapper);
     }
+    @Override
+    public Optional<Ingreso> findById(UUID id) {
+        List<Ingreso> resultados = jdbc.query(SQL_FIND_BY_ID, mapper, id);
+        return resultados.stream().findFirst();
+    }
+
+    @Override
+    public List<Ingreso> findByEstado(EstadoIngreso estado) {
+        return jdbc.query(SQL_FIND_BY_ESTADO, mapper, estado.name());
+    }
+
+    @Override
+    public Optional<Ingreso> findFirstEnProceso() {
+        List<Ingreso> resultados = jdbc.query(SQL_FIND_EN_PROCESO_FIRST, mapper);
+        return resultados.stream().findFirst();
+    }
+    @Override
+    public int countByEstado(EstadoIngreso estado) {
+        return jdbc.queryForObject(SQL_COUNT_BY_ESTADO, Integer.class, estado.name());
+    }
+
+    @Override
+    public Optional<Ingreso> findEnAtencionActual() {
+        return jdbc.query(SQL_FIND_EN_ATENCION, mapper)
+                .stream().findFirst();
+    }
+
+
 }

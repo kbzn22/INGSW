@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS obra_social (
                                            nombre  TEXT NOT NULL UNIQUE
 );
 
+
 -- ============================================================
 -- 3) Tabla PACIENTE
 --    (modelo: Paciente extiende Persona, con Domicilio y Afiliado)
@@ -63,11 +64,21 @@ CREATE TABLE IF NOT EXISTS ingreso (
                          diastolica        NUMERIC(6,2)
 );
 
--- Índice para búsquedas por estado (findByEstadoPendiente)
+CREATE TABLE IF NOT EXISTS atencion (
+                                        id              UUID PRIMARY KEY,
+                                        ingreso_id      UUID NOT NULL REFERENCES ingreso(id),
+                                        cuil_doctor     TEXT NOT NULL,  -- referencia a personal.cuil tipo DOCTOR
+                                        informe         TEXT,
+                                        fecha_atencion  TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_atencion_ingreso
+    ON atencion(ingreso_id);
+
+-- Índices ingreso
 CREATE INDEX IF NOT EXISTS idx_ingreso_estado
     ON ingreso(estado_ingreso);
 
--- Índice útil para listas ordenadas por fecha
 CREATE INDEX IF NOT EXISTS idx_ingreso_fecha
     ON ingreso(fecha_ingreso DESC);
 
