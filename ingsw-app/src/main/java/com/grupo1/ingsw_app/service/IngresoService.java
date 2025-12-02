@@ -5,7 +5,7 @@ import com.grupo1.ingsw_app.domain.EstadoIngreso;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
-import com.grupo1.ingsw_app.dtos.ColaItemDTO;
+import com.grupo1.ingsw_app.domain.ColaItem;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
@@ -15,6 +15,7 @@ import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.security.Sesion;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -58,42 +59,48 @@ public class IngresoService {
                 (req.getFrecuenciaDiastolica())
         ));
 
+        ingreso.setEstadoIngreso(EstadoIngreso.PENDIENTE);
+        ingreso.setFechaIngreso(LocalDateTime.now());
+
         repoIngreso.save(ingreso);
-        cola.agregar(ingreso);
+
         return ingreso;
     }
 
-    public ColaAtencion obtenerCola () {
-        cola.limpiar();
-        List<Ingreso> ingresos = repoIngreso.findByEstadoPendiente();
+    public ColaAtencion obtenerCola() {
 
-        for(Ingreso ingreso: ingresos){
-            cola.agregar(ingreso);
+
+        List<Ingreso> pendientes = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
+
+        ColaAtencion cola = new ColaAtencion();
+
+
+        for (Ingreso ingreso : pendientes) {
+
+            var paciente = ingreso.getPaciente();
+
+            ColaItem item = new ColaItem(
+                    ingreso.getId(),                                     // idIngreso
+                    paciente.getNombre(),                                // nombrePaciente
+                    paciente.getApellido(),                              // apellidoPaciente
+                    paciente.getCuil().getValor(),                       // cuilPaciente
+                    ingreso.getNivelEmergencia().getNumero(),           // nivel
+                    ingreso.getFechaIngreso()                            // fechaIngreso
+            );
+
+
+            cola.agregar(item);
         }
 
         return cola;
     }
+
     public ResumenColaDTO obtenerResumenCola() {
         int pendientes  = repoIngreso.countByEstado(EstadoIngreso.PENDIENTE);
         int enAtencion  = repoIngreso.countByEstado(EstadoIngreso.EN_PROCESO);
         int finalizados = repoIngreso.countByEstado(EstadoIngreso.FINALIZADO);
 
         return new ResumenColaDTO(pendientes, enAtencion, finalizados);
-    }
-
-    public List<ColaItemDTO> obtenerColaDTO() {
-        var ingresos = repoIngreso.findByEstadoPendiente(); // ya lo tenés
-        return ingresos.stream()
-                .map(ing -> new ColaItemDTO(
-                        ing.getId(),
-                        ing.getPaciente().getNombre(),
-                        ing.getPaciente().getApellido(),// o nombre + apellido
-                        ing.getPaciente().getCuil().getValor(),
-                        ing.getNivelEmergencia().getNumero(),
-                        ing.getEstadoIngreso().name(),
-                        ing.getFechaIngreso()
-                ))
-                .toList();
     }
 
 }

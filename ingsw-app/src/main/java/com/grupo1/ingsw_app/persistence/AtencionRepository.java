@@ -66,10 +66,28 @@ public class AtencionRepository implements IAtencionRepository {
             atencion.setId(UUID.randomUUID());
         }
 
+
+        if (atencion.getIngreso() == null || atencion.getIngreso().getId() == null) {
+            throw new IllegalStateException("La atención no tiene ingreso o el ingreso no tiene ID");
+        }
+
+        if (atencion.getDoctor() == null || atencion.getDoctor().getCuil() == null) {
+            throw new IllegalStateException("La atención no tiene médico o el médico no tiene CUIL");
+        }
+
+        if (atencion.getDoctor().getCuil().getValor() == null) {
+            throw new IllegalStateException("El CUIL del médico es nulo");
+        }
+
+        if (atencion.getFechaAtencion() == null) {
+            // si por alguna razón no se seteó, usá ahora
+            atencion.setFechaAtencion(LocalDateTime.now());
+        }
+
         jdbc.update(SQL_UPSERT,
                 atencion.getId(),
                 atencion.getIngreso().getId(),
-                atencion.getDoctor().getCuil().getValor(), // o el campo que uses
+                atencion.getDoctor().getCuil().getValor(),
                 atencion.getInforme(),
                 Timestamp.valueOf(atencion.getFechaAtencion())
         );

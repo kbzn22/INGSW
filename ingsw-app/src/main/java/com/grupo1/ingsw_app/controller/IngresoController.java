@@ -1,6 +1,6 @@
 package com.grupo1.ingsw_app.controller;
 
-import com.grupo1.ingsw_app.dtos.ColaItemDTO;
+import com.grupo1.ingsw_app.domain.ColaItem;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.dtos.PacienteEnAtencionDTO;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static com.grupo1.ingsw_app.controller.helpers.RequestParser.*;
 
@@ -41,9 +40,6 @@ public class IngresoController {
         Double frecuenciaDiastolica  = parseDouble(body.get("frecuenciaDiastolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)");
         Integer nivel                = parseInteger(body.get("nivel"), "nivel", "la prioridad ingresada no existe o es nula");
 
-        // ===== Obra social (opcional) =====
-
-
         IngresoRequest req = new IngresoRequest(
                 cuilPaciente,
                 informe,
@@ -57,18 +53,20 @@ public class IngresoController {
         );
 
         var ingreso = ingresoService.registrarIngreso(req);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
     }
+
     @GetMapping("/resumen")
     public ResumenColaDTO getResumen() {
         return ingresoService.obtenerResumenCola();
     }
+
     @GetMapping("/cola")
-    public List<ColaItemDTO> getCola() {
-        return ingresoService.obtenerColaDTO();
+    public List<ColaItem> obtenerCola() {
+        return ingresoService.obtenerCola().verCola();
     }
 
-    // GET /api/ingresos/en-atencion
     @GetMapping("/en-atencion")
     public ResponseEntity<PacienteEnAtencionDTO> getEnAtencion() {
         return atencionService.obtenerPacienteEnAtencion()

@@ -74,7 +74,7 @@ Feature: Registro de admisiones en urgencias
     When registro el ingreso del paciente con los siguientes datos:
       | informe     | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica          | frecuencia diastolica          | nivel  |
       | Mareo leve  | 37.0        | 88                  | 17                      | <frecuencia sistolica>        | <frecuencia diastolica>        | 2      |
-    Then el sistema muestra un mensaje de error "El campo 'tensionArterial' es inválido: debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)"
+    Then el sistema muestra un mensaje de error "El campo 'tensionArterial' es inválido: debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)"
 
     Examples:
       | frecuencia sistolica | frecuencia diastolica |

@@ -1,7 +1,9 @@
 package com.grupo1.ingsw_app.external;
 
 import com.grupo1.ingsw_app.domain.ObraSocial;
+import com.grupo1.ingsw_app.dtos.ObraSocialDto;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface IObraSocialClient {
@@ -20,4 +22,6 @@ public interface IObraSocialClient {
      * @return true si el número está afiliado, false en caso contrario
      */
     boolean estaAfiliado(UUID idObraSocial, String numeroAfiliado);
+
+    List<ObraSocialDto> listarObrasSociales();
 }
