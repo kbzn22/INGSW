@@ -11,7 +11,7 @@ public class TensionArterial {
     public TensionArterial(Double sistolica, Double diastolica) {
         if (sistolica == null || diastolica == null||sistolica < 0 || diastolica < 0)
             throw new CampoInvalidoException("tensionArterial",
-                    "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)");
+                    "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)");
         this.frecuenciaSistolica = new Frecuencia(sistolica);
         this.frecuenciaDiastolica = new Frecuencia(diastolica);
     }

@@ -5,7 +5,7 @@ import com.grupo1.ingsw_app.domain.EstadoIngreso;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.domain.NivelEmergencia;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
-import com.grupo1.ingsw_app.dtos.ColaItemDTO;
+import com.grupo1.ingsw_app.domain.ColaItem;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
@@ -59,41 +59,36 @@ public class IngresoService {
         ));
 
         repoIngreso.save(ingreso);
-        cola.agregar(ingreso);
+
         return ingreso;
     }
 
-    public ColaAtencion obtenerCola () {
+    public ColaAtencion obtenerCola() {
+        ColaItem colaItem;
         cola.limpiar();
         List<Ingreso> ingresos = repoIngreso.findByEstadoPendiente();
 
         for(Ingreso ingreso: ingresos){
-            cola.agregar(ingreso);
-        }
+            colaItem = new ColaItem(
+                    ingreso.getId(),
+                    ingreso.getPaciente().getNombre(),
+                    ingreso.getPaciente().getApellido(),// o nombre + apellido
+                    ingreso.getPaciente().getCuil().getValor(),
+                    ingreso.getNivelEmergencia().getNumero(),
+                    ingreso.getFechaIngreso()
+            );
 
+            cola.agregar(colaItem);
+        }
         return cola;
     }
+
     public ResumenColaDTO obtenerResumenCola() {
         int pendientes  = repoIngreso.countByEstado(EstadoIngreso.PENDIENTE);
         int enAtencion  = repoIngreso.countByEstado(EstadoIngreso.EN_PROCESO);
         int finalizados = repoIngreso.countByEstado(EstadoIngreso.FINALIZADO);
 
         return new ResumenColaDTO(pendientes, enAtencion, finalizados);
-    }
-
-    public List<ColaItemDTO> obtenerColaDTO() {
-        var ingresos = repoIngreso.findByEstadoPendiente(); // ya lo tenés
-        return ingresos.stream()
-                .map(ing -> new ColaItemDTO(
-                        ing.getId(),
-                        ing.getPaciente().getNombre(),
-                        ing.getPaciente().getApellido(),// o nombre + apellido
-                        ing.getPaciente().getCuil().getValor(),
-                        ing.getNivelEmergencia().getNumero(),
-                        ing.getEstadoIngreso().name(),
-                        ing.getFechaIngreso()
-                ))
-                .toList();
     }
 
 }

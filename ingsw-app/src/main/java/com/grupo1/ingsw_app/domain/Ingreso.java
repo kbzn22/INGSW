@@ -27,10 +27,6 @@ public class Ingreso {
 
     }
 
-    public Atencion getAtencion() { return atencion; }
-    public void setAtencion(Atencion atencion) { this.atencion = atencion; }
-
-
     public Ingreso(Paciente paciente, Enfermera enfermera, NivelEmergencia nivelEmergencia) {
         this.paciente = paciente;
         this.enfermera = enfermera;
@@ -127,5 +123,13 @@ public class Ingreso {
 
     public void setFrecuenciaRespiratoria(FrecuenciaRespiratoria frecuenciaRespiratoria) {
         this.frecuenciaRespiratoria = frecuenciaRespiratoria;
+    }
+
+    public Atencion getAtencion() {
+        return atencion;
+    }
+
+    public void setAtencion(Atencion atencion) {
+        this.atencion = atencion;
     }
 }

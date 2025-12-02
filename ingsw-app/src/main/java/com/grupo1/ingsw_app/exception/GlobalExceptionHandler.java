@@ -28,6 +28,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request, "CAMPO_INVALIDO");
     }
 
+    @ExceptionHandler(AfiliacionInvalidaException.class)
+    public ResponseEntity<ApiError> handleAfiliacionInvalida(
+            AfiliacionInvalidaException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.BAD_REQUEST,           // 🔹 error de negocio, no del servidor
+                "Bad Request",
+                ex.getMessage(),
+                request,
+                "AFILIACION_INVALIDA"              // 🔹 código de error interno coherente con tu estilo
+        );
+    }
+
     // ======= Captura general =======
 
     @ExceptionHandler(Exception.class)
