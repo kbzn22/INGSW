@@ -72,6 +72,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+
     // ======= Helpers =======
 
     private ResponseEntity<ApiError> build(HttpStatus status, String error, String message,

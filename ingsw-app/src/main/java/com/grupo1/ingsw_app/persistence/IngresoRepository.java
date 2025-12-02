@@ -52,15 +52,7 @@ public class IngresoRepository implements IIngresoRepository {
     private static final String SQL_TRUNCATE =
             "TRUNCATE TABLE ingreso";
 
-    private static final String SQL_FIND_PENDIENTE = """
-        SELECT
-          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
-          descripcion, fecha_ingreso,
-          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
-        FROM ingreso
-        WHERE estado_ingreso = 'PENDIENTE'
-        ORDER BY fecha_ingreso ASC
-        """;
+
     private static final String SQL_FIND_BY_ID = """
         SELECT
           id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
@@ -71,14 +63,14 @@ public class IngresoRepository implements IIngresoRepository {
         """;
 
     private static final String SQL_FIND_BY_ESTADO = """
-        SELECT
-          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
-          descripcion, fecha_ingreso,
-          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
-        FROM ingreso
-        WHERE estado_ingreso = ?
-        ORDER BY fecha_ingreso ASC
-        """;
+    SELECT
+      id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
+      descripcion, fecha_ingreso,
+      temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
+    FROM ingreso
+    WHERE estado_ingreso = ?::estado_ingreso
+    ORDER BY nivel_emergencia ASC, fecha_ingreso ASC
+    """;
 
     private static final String SQL_FIND_EN_PROCESO_FIRST = """
         SELECT
@@ -91,7 +83,8 @@ public class IngresoRepository implements IIngresoRepository {
         LIMIT 1
         """;
     private static final String SQL_COUNT_BY_ESTADO =
-            "SELECT COUNT(*) FROM ingreso WHERE estado_ingreso = ?";
+            "SELECT COUNT(*) FROM ingreso WHERE estado_ingreso = ?::estado_ingreso";
+
 
     private static final String SQL_FIND_EN_ATENCION = """
     SELECT

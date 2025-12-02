@@ -15,6 +15,7 @@ import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.security.Sesion;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -58,28 +59,39 @@ public class IngresoService {
                 (req.getFrecuenciaDiastolica())
         ));
 
+        ingreso.setEstadoIngreso(EstadoIngreso.PENDIENTE);
+        ingreso.setFechaIngreso(LocalDateTime.now());
+
         repoIngreso.save(ingreso);
 
         return ingreso;
     }
 
     public ColaAtencion obtenerCola() {
-        ColaItem colaItem;
-        cola.limpiar();
-        List<Ingreso> ingresos = repoIngreso.findByEstadoPendiente();
 
-        for(Ingreso ingreso: ingresos){
-            colaItem = new ColaItem(
-                    ingreso.getId(),
-                    ingreso.getPaciente().getNombre(),
-                    ingreso.getPaciente().getApellido(),// o nombre + apellido
-                    ingreso.getPaciente().getCuil().getValor(),
-                    ingreso.getNivelEmergencia().getNumero(),
-                    ingreso.getFechaIngreso()
+
+        List<Ingreso> pendientes = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
+
+        ColaAtencion cola = new ColaAtencion();
+
+
+        for (Ingreso ingreso : pendientes) {
+
+            var paciente = ingreso.getPaciente();
+
+            ColaItem item = new ColaItem(
+                    ingreso.getId(),                                     // idIngreso
+                    paciente.getNombre(),                                // nombrePaciente
+                    paciente.getApellido(),                              // apellidoPaciente
+                    paciente.getCuil().getValor(),                       // cuilPaciente
+                    ingreso.getNivelEmergencia().getNumero(),           // nivel
+                    ingreso.getFechaIngreso()                            // fechaIngreso
             );
 
-            cola.agregar(colaItem);
+
+            cola.agregar(item);
         }
+
         return cola;
     }
 

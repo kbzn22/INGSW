@@ -27,14 +27,27 @@ public class AtencionService {
         this.atencionRepo = atencionRepo;
         this.sesionActual = sesionActual;
     }
+    private Doctor obtenerDoctorDeSesion() {
+        Persona persona = sesionActual.getPersona(); // <- este método lo tenés seguro porque SesionRepository lo usa
 
+        if (persona == null) {
+            throw new IllegalStateException("No hay usuario autenticado en la sesión actual");
+        }
+
+        if (!(persona instanceof Doctor doctor)) {
+            // si es Enfermera o cualquier otra cosa
+            throw new IllegalStateException("El usuario actual no es un médico");
+        }
+
+        return doctor;
+    }
     public PacienteEnAtencionDTO iniciarAtencion(UUID ingresoId) {
 
         Ingreso ingreso = ingresoRepo.findById(ingresoId)
                 .orElseThrow(() ->
                         new EntidadNoEncontradaException("ingreso", ingresoId.toString()));
 
-        Doctor doctor = sesionActual.getDoctor();
+        Doctor doctor = obtenerDoctorDeSesion();
 
         ingreso.setEstadoIngreso(EstadoIngreso.EN_PROCESO);
         ingresoRepo.save(ingreso);
