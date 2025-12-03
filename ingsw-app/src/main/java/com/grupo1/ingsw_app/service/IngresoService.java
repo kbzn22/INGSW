@@ -4,7 +4,7 @@ import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
 import com.grupo1.ingsw_app.dtos.IngresoDetalleDTO;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
-import com.grupo1.ingsw_app.dtos.PacienteColaDTO;
+import com.grupo1.ingsw_app.domain.ColaItem;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
@@ -14,8 +14,8 @@ import com.grupo1.ingsw_app.security.Sesion;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -67,34 +67,6 @@ public class IngresoService {
         return ingreso;
     }
 
-    public ColaAtencion obtenerCola() {
-
-
-        List<Ingreso> pendientes = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
-
-        ColaAtencion cola = new ColaAtencion();
-
-
-        for (Ingreso ingreso : pendientes) {
-
-            var paciente = ingreso.getPaciente();
-
-            ColaItem item = new ColaItem(
-                    ingreso.getId(),                                     // idIngreso
-                    paciente.getNombre(),                                // nombrePaciente
-                    paciente.getApellido(),                              // apellidoPaciente
-                    paciente.getCuil().getValor(),                       // cuilPaciente
-                    ingreso.getNivelEmergencia().getNumero(),           // nivel
-                    ingreso.getFechaIngreso()                            // fechaIngreso
-            );
-
-
-            cola.agregar(item);
-        }
-
-        return cola;
-    }
-
     public ResumenColaDTO obtenerResumenCola() {
         int pendientes  = repoIngreso.countByEstado(EstadoIngreso.PENDIENTE);
         int enAtencion  = repoIngreso.countByEstado(EstadoIngreso.EN_PROCESO);
@@ -102,55 +74,35 @@ public class IngresoService {
 
         return new ResumenColaDTO(pendientes, enAtencion, finalizados);
     }
-    public List<PacienteColaDTO> obtenerColaDTO() {
-        // solo pendientes; el repo ya ordena por nivel / fecha
-        List<Ingreso> ingresos = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
 
-        List<PacienteColaDTO> resultado = new ArrayList<>();
+    public List<ColaItem> obtenerColaPendienteDTO() {
+        List<Ingreso> pendientes = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
 
-        for (Ingreso ingreso : ingresos) {
+        ColaAtencion cola = new ColaAtencion();
 
-            String cuil = null;
-            String nombre = null;
-            String apellido = null;
 
-            // 1) sacar CUIL del ingreso
-            if (ingreso.getPaciente() != null && ingreso.getPaciente().getCuil() != null) {
-                cuil = ingreso.getPaciente().getCuil().getValor();
-            }
+        for (Ingreso ingreso : pendientes) {
 
-            // 2) buscar Paciente real para obtener nombre/apellido
-            if (cuil != null) {
-                var pacOpt = repoPaciente.findByCuil(cuil);
-                if (pacOpt.isPresent()) {
-                    Paciente p = pacOpt.get();
-                    nombre = p.getNombre();
-                    apellido = p.getApellido();
-                }
-            }
+            String cuil = ingreso.getPaciente().getCuil().getValor();
+            Optional<Paciente> paciente = repoPaciente.findByCuil(cuil);
 
-            NivelEmergencia nivel = ingreso.getNivelEmergencia();
-            int numeroNivel = nivel != null ? nivel.getNumero() : 0;
-            String nombreNivel = nivel != null ? nivel.getNombreEnum() : null; // o getDescripcion()
+            ColaItem item = new ColaItem(
+                    ingreso.getId(),                                     // idIngreso
+                    paciente.get().getNombre(),                                // nombrePaciente
+                    paciente.get().getApellido(),                              // apellidoPaciente
+                    cuil,                       // cuilPaciente
+                    ingreso.getNivelEmergencia().getNumero(),           // numero del nivel
+                    ingreso.getEstadoIngreso().name(),                  // estado
+                    ingreso.getNivelEmergencia().name(),                // nombre del nivel de emergencia
+                    ingreso.getFechaIngreso()                            // fechaIngreso
+            );
 
-            String estado = ingreso.getEstadoIngreso() != null
-                    ? ingreso.getEstadoIngreso().name()
-                    : null;
-
-            resultado.add(new PacienteColaDTO(
-                    ingreso.getId(),     // ingresoId
-                    nombre,
-                    apellido,
-                    cuil,
-                    numeroNivel,
-                    estado,
-                    nombreNivel,
-                    ingreso.getFechaIngreso()
-            ));
+            cola.agregar(item);
         }
 
-        return resultado;
+        return cola.verCola();
     }
+
     public IngresoDetalleDTO obtenerDetalle(UUID ingresoId) {
         Ingreso ingreso = repoIngreso.findById(ingresoId)
                 .orElseThrow(() -> new EntidadNoEncontradaException("ingreso", ingresoId.toString()));

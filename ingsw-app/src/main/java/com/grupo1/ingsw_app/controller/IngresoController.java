@@ -62,8 +62,8 @@ public class IngresoController {
     }
 
     @GetMapping("/cola")
-    public List<PacienteColaDTO> obtenerCola() {
-        return ingresoService.obtenerColaDTO(); // ideeal introducir helpers para transformar a dto
+    public List<ColaItem> obtenerCola() {
+        return ingresoService.obtenerColaPendienteDTO();
     }
 
     @GetMapping("/en-atencion")

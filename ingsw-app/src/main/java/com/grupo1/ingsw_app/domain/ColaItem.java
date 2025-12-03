@@ -5,41 +5,64 @@ import java.util.UUID;
 
 public class ColaItem {
 
-    private UUID idIngreso;
-    private String nombrePaciente;
-    private String apellidoPaciente;
-    private String cuilPaciente;
-    private Integer nivel;
+    private UUID   ingresoId;
+    private String nombre;
+    private String apellido;
+    private String cuil;
+    private int    nivel;         // número 0..4, etc
+    private String estado;
+    private String nombreNivel;   // "Crítica", "Emergencia", etc.
     private LocalDateTime fechaIngreso;
 
-    public ColaItem(UUID idIngreso,
-                    String nombrePaciente,
-                    String apellidoPaciente,
-                    String cuilPaciente,
-                    Integer nivel,
-                    LocalDateTime fechaIngreso) {
-        this.idIngreso = idIngreso;
-        this.nombrePaciente = nombrePaciente;
-        this.apellidoPaciente=apellidoPaciente;
-        this.cuilPaciente = cuilPaciente;
+    public ColaItem(
+            UUID ingresoId,
+            String nombre,
+            String apellido,
+            String cuil,
+            int nivel,
+            String estado,
+            String nombreNivel,
+            LocalDateTime fechaIngreso
+    ) {
+        this.ingresoId = ingresoId;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.cuil = cuil;
         this.nivel = nivel;
+        this.estado = estado;
+        this.nombreNivel = nombreNivel;
         this.fechaIngreso = fechaIngreso;
     }
 
-    public ColaItem(String nombrePaciente,
-                    String cuilPaciente,
-                    Integer nivel,
-                    LocalDateTime fechaIngreso) {
-        this.nombrePaciente = nombrePaciente;
-        this.cuilPaciente = cuilPaciente;
-        this.nivel = nivel;
-        this.fechaIngreso = fechaIngreso;
+    public UUID getIngresoId(){
+        return ingresoId;
     }
 
-    public UUID getIdIngreso() { return idIngreso; }
-    public String getNombrePaciente() { return nombrePaciente; }
-    public String getApellidoPaciente() { return apellidoPaciente; }
-    public String getCuilPaciente() { return cuilPaciente; }
-    public Integer getNivel() { return nivel; }
-    public LocalDateTime getFechaIngreso() { return fechaIngreso; }
+    public String getNombre(){
+        return nombre;
+    }
+
+    public String getApellido(){
+        return apellido;
+    }
+
+    public String getCuil(){
+        return cuil;
+    }
+
+    public int getNivel(){
+        return nivel;
+    }
+
+    public String getEstado(){
+        return estado;
+    }
+
+    public String getNombreNivel(){
+        return nombreNivel;
+    }
+
+    public LocalDateTime getFechaIngreso(){
+        return fechaIngreso;
+    }
 }

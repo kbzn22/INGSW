@@ -18,13 +18,13 @@ public class ColaAtencion {
 
     public boolean estaElPaciente(String cuil) {
         return ingresosEnCola.stream()
-                .anyMatch(item -> item.getCuilPaciente().equals(cuil));
+                .anyMatch(item -> item.getCuil().equals(cuil));
     }
 
     /** Retorna posición 1-based; -1 si no está. */
     public int posicionDe(String cuilPaciente) {
         int idx = IntStream.range(0, ingresosEnCola.size())
-                .filter(i -> ingresosEnCola.get(i).getCuilPaciente().equals(cuilPaciente))
+                .filter(i -> ingresosEnCola.get(i).getCuil().equals(cuilPaciente))
                 .findFirst().orElse(-1);
         return (idx == -1) ? -1 : idx + 1;
     }

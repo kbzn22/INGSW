@@ -21,7 +21,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -220,9 +222,11 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @And("el paciente entra en la cola de atención")
     public void elPacienteEntraEnLaColaDeAtención() {
-        ColaAtencion cola = ingresoService.obtenerCola();
+        List<ColaItem> ingresos = ingresoService.obtenerColaPendienteDTO();
 
-        boolean estaEnCola = cola.estaElPaciente(pacienteActual.getCuil().getValor());
+        boolean estaEnCola = ingresos.stream()
+                .anyMatch(item -> item.getCuil()
+                        .equals(pacienteActual.getCuil().getValor()));
 
         assertTrue(estaEnCola, "El ingreso no está en la cola de atención");
     }
@@ -240,10 +244,14 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
         dataTable.asMaps(String.class, String.class).forEach(fila -> {
             ColaItem ingreso = new ColaItem(
+                    UUID.randomUUID(),
                     fila.get("cuil"),
                     fila.get("nombre"),
+                    fila.get("apellido"),
                     Integer.parseInt(fila.get("nivel")),
-                    LocalDateTime.of( fechaBase, LocalTime.parse(fila.get("hora de ingreso")) )
+                    EstadoIngreso.PENDIENTE.toString(),
+                    fila.get("nivel"),
+                    LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso")))
             );
             cola.agregar(ingreso);
         });
@@ -253,14 +261,18 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     public void ingresaALaColaElPacienteConLosSiguientesDatos(DataTable dataTable) {
         Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
         ingresoActual = new ColaItem(
+                UUID.randomUUID(),
                 fila.get("cuil"),
                 fila.get("nombre"),
+                fila.get("apellido"),
                 Integer.parseInt(fila.get("nivel")),
+                EstadoIngreso.PENDIENTE.toString(),
+                fila.get("nivel"),
                 LocalDateTime.of(fechaBase, LocalTime.parse(fila.get("hora de ingreso")))
         );
         cola.agregar(ingresoActual);
 
-        posicionResultante = cola.posicionDe(ingresoActual.getCuilPaciente());
+        posicionResultante = cola.posicionDe(ingresoActual.getCuil());
     }
 
     @Then("el nuevo ingreso se ubica en la posición {int} de la cola de atención")
