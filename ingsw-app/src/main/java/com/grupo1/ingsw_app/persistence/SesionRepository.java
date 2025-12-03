@@ -66,8 +66,7 @@ public class SesionRepository implements ISesionRepository {
             var persona = personalRepo.findByCuil(cuil).orElse(null);
             if (persona == null) return null;
 
-            // OJO: acá NO regeneramos nada, solo reconstruimos:
-            // username lo sacamos de la persona como hace setUsuario(...)
+
             String username;
             if (persona instanceof Doctor d && d.getUsuario() != null) {
                 username = d.getUsuario().getUsuario();

@@ -27,6 +27,10 @@ public enum NivelEmergencia {
         return nivel.getNivel();
     }
 
+    public String getNombreEnum() {
+        return this.name();
+    }
+
     // Utilidad: buscar por número de nivel (1..5).
     public static NivelEmergencia fromNumero(Integer numero) {
         if (numero == null) {

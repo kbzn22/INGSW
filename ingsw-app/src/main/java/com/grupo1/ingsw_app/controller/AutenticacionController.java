@@ -1,5 +1,9 @@
 package com.grupo1.ingsw_app.controller;
 
+import com.grupo1.ingsw_app.domain.Doctor;
+import com.grupo1.ingsw_app.domain.Enfermera;
+import com.grupo1.ingsw_app.domain.Persona;
+import com.grupo1.ingsw_app.security.Sesion;
 import com.grupo1.ingsw_app.service.AutenticacionService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -56,17 +60,56 @@ public class AutenticacionController {
         }
 
         try {
-            var usuario = auth.requireSession(sid);
 
-            // devolvés solo lo que te interese del usuario
+            Sesion sesion = auth.requireSesionCompleta(sid);
+            Persona persona = sesion.getPersona();
+
+            String rol;
+            String nombre = null;
+            String apellido = null;
+            String cuil = null;
+
+            if (persona instanceof Doctor d) {
+                rol = "DOCTOR";
+                nombre = d.getNombre();
+                apellido = d.getApellido();
+                cuil = d.getCuil().getValor();
+            } else if (persona instanceof Enfermera e) {
+                rol = "ENFERMERA";
+                nombre = e.getNombre();
+                apellido = e.getApellido();
+                cuil = e.getCuil().getValor();
+            } else {
+                rol = "DESCONOCIDO";
+            }
+
             var dto = Map.of(
-                    "username", usuario.getUsuario()
-
+                    "username", sesion.getUsuario(),
+                    "rol", rol,
+                    "nombre", nombre,
+                    "apellido", apellido,
+                    "cuil", cuil
             );
 
             return ResponseEntity.ok(dto);
-        } catch (IllegalStateException ex) {
-            System.out.println("=============================================="+ex.getMessage()+"==============================================");
+
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+    @GetMapping("/verificar")
+    public ResponseEntity<Void> verificar(
+            @CookieValue(name = "SESSION_ID", required = false) String sid) {
+
+        if (sid == null || sid.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            // Podés usar requireSession o requireSesionCompleta, da igual mientras valide
+            auth.requireSesionCompleta(sid);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }

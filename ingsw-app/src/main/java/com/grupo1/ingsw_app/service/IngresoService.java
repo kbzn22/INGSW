@@ -1,12 +1,10 @@
 package com.grupo1.ingsw_app.service;
 
-import com.grupo1.ingsw_app.domain.ColaAtencion;
-import com.grupo1.ingsw_app.domain.EstadoIngreso;
-import com.grupo1.ingsw_app.domain.Ingreso;
-import com.grupo1.ingsw_app.domain.NivelEmergencia;
+import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
-import com.grupo1.ingsw_app.domain.ColaItem;
+import com.grupo1.ingsw_app.dtos.IngresoDetalleDTO;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
+import com.grupo1.ingsw_app.dtos.PacienteColaDTO;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
@@ -16,7 +14,9 @@ import com.grupo1.ingsw_app.security.Sesion;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class IngresoService {
@@ -102,5 +102,147 @@ public class IngresoService {
 
         return new ResumenColaDTO(pendientes, enAtencion, finalizados);
     }
+    public List<PacienteColaDTO> obtenerColaDTO() {
+        // solo pendientes; el repo ya ordena por nivel / fecha
+        List<Ingreso> ingresos = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
 
+        List<PacienteColaDTO> resultado = new ArrayList<>();
+
+        for (Ingreso ingreso : ingresos) {
+
+            String cuil = null;
+            String nombre = null;
+            String apellido = null;
+
+            // 1) sacar CUIL del ingreso
+            if (ingreso.getPaciente() != null && ingreso.getPaciente().getCuil() != null) {
+                cuil = ingreso.getPaciente().getCuil().getValor();
+            }
+
+            // 2) buscar Paciente real para obtener nombre/apellido
+            if (cuil != null) {
+                var pacOpt = repoPaciente.findByCuil(cuil);
+                if (pacOpt.isPresent()) {
+                    Paciente p = pacOpt.get();
+                    nombre = p.getNombre();
+                    apellido = p.getApellido();
+                }
+            }
+
+            NivelEmergencia nivel = ingreso.getNivelEmergencia();
+            int numeroNivel = nivel != null ? nivel.getNumero() : 0;
+            String nombreNivel = nivel != null ? nivel.getNombreEnum() : null; // o getDescripcion()
+
+            String estado = ingreso.getEstadoIngreso() != null
+                    ? ingreso.getEstadoIngreso().name()
+                    : null;
+
+            resultado.add(new PacienteColaDTO(
+                    ingreso.getId(),     // ingresoId
+                    nombre,
+                    apellido,
+                    cuil,
+                    numeroNivel,
+                    estado,
+                    nombreNivel,
+                    ingreso.getFechaIngreso()
+            ));
+        }
+
+        return resultado;
+    }
+    public IngresoDetalleDTO obtenerDetalle(UUID ingresoId) {
+        Ingreso ingreso = repoIngreso.findById(ingresoId)
+                .orElseThrow(() -> new EntidadNoEncontradaException("ingreso", ingresoId.toString()));
+
+        // Paciente completo
+        String cuilPac = null;
+        String nombrePac = null;
+        String apellidoPac = null;
+        String obraSocialNombre = null;
+        String numeroAfiliado = null;
+
+        if (ingreso.getPaciente() != null && ingreso.getPaciente().getCuil() != null) {
+            cuilPac = ingreso.getPaciente().getCuil().getValor();
+
+            var pacOpt = repoPaciente.findByCuil(cuilPac);
+            if (pacOpt.isPresent()) {
+                Paciente p = pacOpt.get();
+                nombrePac = p.getNombre();
+                apellidoPac = p.getApellido();
+                if (p.getAfiliado() != null) {
+                    var afi = p.getAfiliado();
+                    if (afi.getObraSocial() != null) {
+                        obraSocialNombre = afi.getObraSocial().getNombre();
+                    }
+                    numeroAfiliado = afi.getNumeroAfiliado();
+                }
+            }
+        }
+
+        // Enfermera desde el Ingreso (ya hidratada por el mapper)
+        String cuilEnf = null;
+        String nombreEnf = null;
+        String apellidoEnf = null;
+
+        if (ingreso.getEnfermera() != null) {
+            Enfermera e = ingreso.getEnfermera();
+            if (e.getCuil() != null) {
+                cuilEnf = e.getCuil().getValor();
+            }
+            nombreEnf = e.getNombre();
+            apellidoEnf = e.getApellido();
+        }
+
+        var nivel = ingreso.getNivelEmergencia();
+        Integer nivelNum = (nivel != null) ? nivel.getNumero() : null;
+        String nombreNivel = (nivel != null && nivel.getNivel() != null)
+                ? nivel.getNombreEnum()
+                : null;
+
+        String estado = ingreso.getEstadoIngreso() != null
+                ? ingreso.getEstadoIngreso().name()
+                : null;
+
+        Float temp = ingreso.getTemperatura() != null
+                ? (Float) ingreso.getTemperatura().getTemperatura()
+                : null;
+
+        Double fc = ingreso.getFrecuenciaCardiaca() != null
+                ? ingreso.getFrecuenciaCardiaca().getValor()
+                : null;
+
+        Double fr = ingreso.getFrecuenciaRespiratoria() != null
+                ? ingreso.getFrecuenciaRespiratoria().getValor()
+                : null;
+
+        Double sis = null;
+        Double dia = null;
+        if (ingreso.getTensionArterial() != null) {
+            sis = ingreso.getTensionArterial().getSistolica().getValor();
+            dia = ingreso.getTensionArterial().getDiastolica().getValor();
+        }
+
+        return new IngresoDetalleDTO(
+                ingreso.getId(),
+                cuilPac,
+                nombrePac,
+                apellidoPac,
+                obraSocialNombre,
+                numeroAfiliado,
+                cuilEnf,
+                nombreEnf,
+                apellidoEnf,
+                nivelNum,
+                nombreNivel,
+                estado,
+                ingreso.getFechaIngreso(),
+                ingreso.getDescripcion(),
+                temp,
+                fc,
+                fr,
+                sis,
+                dia
+        );
+    }
 }

@@ -17,9 +17,11 @@ import java.util.*;
 public class IngresoRepository implements IIngresoRepository {
 
     private final JdbcTemplate jdbc;
+    private final IPersonalRepository personalRepository;
 
-    public IngresoRepository(JdbcTemplate jdbc) {
+    public IngresoRepository(JdbcTemplate jdbc, PersonalRepository personalRepository) {
         this.jdbc = jdbc;
+        this.personalRepository=personalRepository;
     }
 
     // ---------- SQLs
@@ -100,63 +102,67 @@ public class IngresoRepository implements IIngresoRepository {
 
     // ---------- RowMapper: fila -> Ingreso (dominio)
 
-    private final RowMapper<Ingreso> mapper = (rs, rowNum) -> {
-        UUID id = rs.getObject("id", UUID.class);
+    private RowMapper<Ingreso> mapper() {
+        return (rs, rowNum) -> {
+            UUID id = rs.getObject("id", UUID.class);
 
-        String cuilPac = rs.getString("cuil_paciente");
-        String cuilEnf = rs.getString("cuil_enfermera");
+            String cuilPac = rs.getString("cuil_paciente");
+            String cuilEnf = rs.getString("cuil_enfermera");
 
-        int nivelNum = rs.getInt("nivel_emergencia");
-        String estadoStr = rs.getString("estado_ingreso");
-        String desc = rs.getString("descripcion");
+            int nivelNum = rs.getInt("nivel_emergencia");
+            String estadoStr = rs.getString("estado_ingreso");
+            String desc = rs.getString("descripcion");
 
-        Timestamp ts = rs.getTimestamp("fecha_ingreso");
-        LocalDateTime fecha = ts != null ? ts.toLocalDateTime() : null;
+            Timestamp ts = rs.getTimestamp("fecha_ingreso");
+            LocalDateTime fecha = ts != null ? ts.toLocalDateTime() : null;
 
-        // 🔹 TODOS los NUMERIC como BigDecimal
-        BigDecimal tempBd = rs.getBigDecimal("temperatura");
-        BigDecimal fcBd   = rs.getBigDecimal("frec_cardiaca");
-        BigDecimal frBd   = rs.getBigDecimal("frec_respiratoria");
-        BigDecimal sisBd  = rs.getBigDecimal("sistolica");
-        BigDecimal diaBd  = rs.getBigDecimal("diastolica");
+            // NUMERIC → objetos
+            Temperatura temp = rs.getBigDecimal("temperatura") != null
+                    ? new Temperatura(rs.getBigDecimal("temperatura").floatValue())
+                    : null;
 
-        // 🔹 Convertimos a tus value objects
-        Temperatura temp = null;
-        if (tempBd != null) {
-            temp = new Temperatura(tempBd.floatValue());
-        }
+            FrecuenciaCardiaca fc = rs.getBigDecimal("frec_cardiaca") != null
+                    ? new FrecuenciaCardiaca(rs.getBigDecimal("frec_cardiaca").doubleValue())
+                    : null;
 
-        FrecuenciaCardiaca fc = null;
-        if (fcBd != null) {
-            fc = new FrecuenciaCardiaca(fcBd.doubleValue());
-        }
+            FrecuenciaRespiratoria fr = rs.getBigDecimal("frec_respiratoria") != null
+                    ? new FrecuenciaRespiratoria(rs.getBigDecimal("frec_respiratoria").doubleValue())
+                    : null;
 
-        FrecuenciaRespiratoria fr = null;
-        if (frBd != null) {
-            fr = new FrecuenciaRespiratoria(frBd.doubleValue());
-        }
+            TensionArterial ta = null;
+            if (rs.getBigDecimal("sistolica") != null && rs.getBigDecimal("diastolica") != null) {
+                ta = new TensionArterial(
+                        rs.getBigDecimal("sistolica").doubleValue(),
+                        rs.getBigDecimal("diastolica").doubleValue()
+                );
+            }
 
-        TensionArterial ta = null;
-        if (sisBd != null && diaBd != null) {
-            ta = new TensionArterial(sisBd.doubleValue(), diaBd.doubleValue());
-        }
+            // Paciente mínimo
+            Paciente paciente = new Paciente(cuilPac, "");
 
-        // Por ahora reconstruyo Paciente solo con cuil (para la cola)
-        Paciente paciente = new Paciente(cuilPac, "");  // si querés, esto después lo cambiamos a repo
-        Enfermera enfermera = null;                     // lo mismo con cuilEnf
+            // Enfermera desde PersonalRepository
+            Enfermera enfermera = null;
+            if (cuilEnf != null) {
+                var personaOpt = personalRepository.findByCuil(cuilEnf);
+                if (personaOpt.isPresent() && personaOpt.get() instanceof Enfermera e) {
+                    enfermera = e;
+                }
+            }
 
-        Ingreso ingreso = new Ingreso(paciente, enfermera, NivelEmergencia.fromNumero(nivelNum));
-        ingreso.setId(id);
-        ingreso.setEstadoIngreso(EstadoIngreso.valueOf(estadoStr));
-        ingreso.setDescripcion(desc);
-        ingreso.setFechaIngreso(fecha);
-        ingreso.setTemperatura(temp);
-        ingreso.setFrecuenciaCardiaca(fc);
-        ingreso.setFrecuenciaRespiratoria(fr);
-        ingreso.setTensionArterial(ta);
+            Ingreso ingreso = new Ingreso(paciente, enfermera, NivelEmergencia.fromNumero(nivelNum));
+            ingreso.setId(id);
+            ingreso.setEstadoIngreso(EstadoIngreso.valueOf(estadoStr));
+            ingreso.setDescripcion(desc);
+            ingreso.setFechaIngreso(fecha);
+            ingreso.setTemperatura(temp);
+            ingreso.setFrecuenciaCardiaca(fc);
+            ingreso.setFrecuenciaRespiratoria(fr);
+            ingreso.setTensionArterial(ta);
 
-        return ingreso;
-    };
+            return ingreso;
+        };
+    }
+
 
     // ---------- Implementación de IIngresoRepository
 
@@ -255,22 +261,22 @@ public class IngresoRepository implements IIngresoRepository {
             ORDER BY fecha_ingreso ASC
             """;
 
-        return jdbc.query(sql, mapper);
+        return jdbc.query(sql, mapper());
     }
     @Override
     public Optional<Ingreso> findById(UUID id) {
-        List<Ingreso> resultados = jdbc.query(SQL_FIND_BY_ID, mapper, id);
+        List<Ingreso> resultados = jdbc.query(SQL_FIND_BY_ID, mapper(), id);
         return resultados.stream().findFirst();
     }
 
     @Override
     public List<Ingreso> findByEstado(EstadoIngreso estado) {
-        return jdbc.query(SQL_FIND_BY_ESTADO, mapper, estado.name());
+        return jdbc.query(SQL_FIND_BY_ESTADO, mapper(), estado.name());
     }
 
     @Override
     public Optional<Ingreso> findFirstEnProceso() {
-        List<Ingreso> resultados = jdbc.query(SQL_FIND_EN_PROCESO_FIRST, mapper);
+        List<Ingreso> resultados = jdbc.query(SQL_FIND_EN_PROCESO_FIRST, mapper());
         return resultados.stream().findFirst();
     }
     @Override
@@ -280,7 +286,7 @@ public class IngresoRepository implements IIngresoRepository {
 
     @Override
     public Optional<Ingreso> findEnAtencionActual() {
-        return jdbc.query(SQL_FIND_EN_ATENCION, mapper)
+        return jdbc.query(SQL_FIND_EN_ATENCION, mapper())
                 .stream().findFirst();
     }
 

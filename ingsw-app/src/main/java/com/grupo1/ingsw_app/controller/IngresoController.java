@@ -1,9 +1,7 @@
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.domain.ColaItem;
-import com.grupo1.ingsw_app.dtos.IngresoRequest;
-import com.grupo1.ingsw_app.dtos.PacienteEnAtencionDTO;
-import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
+import com.grupo1.ingsw_app.dtos.*;
 import com.grupo1.ingsw_app.service.AtencionService;
 import com.grupo1.ingsw_app.service.IngresoService;
 import org.springframework.http.HttpStatus;
@@ -12,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.grupo1.ingsw_app.controller.helpers.RequestParser.*;
 
@@ -63,8 +62,8 @@ public class IngresoController {
     }
 
     @GetMapping("/cola")
-    public List<ColaItem> obtenerCola() {
-        return ingresoService.obtenerCola().verCola();
+    public List<PacienteColaDTO> obtenerCola() {
+        return ingresoService.obtenerColaDTO(); // ideeal introducir helpers para transformar a dto
     }
 
     @GetMapping("/en-atencion")
@@ -72,6 +71,10 @@ public class IngresoController {
         return atencionService.obtenerPacienteEnAtencion()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+    @GetMapping("/{ingresoId}")
+    public IngresoDetalleDTO obtenerDetalleIngreso(@PathVariable UUID ingresoId) {
+        return ingresoService.obtenerDetalle(ingresoId);
     }
 }
 

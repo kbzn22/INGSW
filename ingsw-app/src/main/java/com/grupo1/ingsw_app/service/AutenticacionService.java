@@ -93,5 +93,28 @@ public class AutenticacionService {
             sesion.limpiar();
         }
     }
+    public Sesion requireSesionCompleta(String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new IllegalStateException("Sesión inválida o expirada");
+        }
+
+        String cleanId = sessionId.trim();
+        if (cleanId.startsWith("\"") && cleanId.endsWith("\"") && cleanId.length() > 1) {
+            cleanId = cleanId.substring(1, cleanId.length() - 1);
+        }
+
+        var sesionOpt = sesionRepo.find(cleanId);
+        if (sesionOpt.isEmpty()) {
+            throw new IllegalStateException("Sesión inválida o expirada");
+        }
+
+        Sesion s = sesionOpt.get();
+        if (s.isExpired()) {
+            sesionRepo.delete(cleanId);
+            throw new IllegalStateException("Sesión expirada");
+        }
+
+        return s;
+    }
 
 }
