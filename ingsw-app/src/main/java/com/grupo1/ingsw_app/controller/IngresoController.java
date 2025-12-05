@@ -72,7 +72,7 @@ public class IngresoController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
-    @GetMapping("/{ingresoId}")
+    @GetMapping("/{ingresoId}/detalle")
     public IngresoDetalleDTO obtenerDetalleIngreso(@PathVariable UUID ingresoId) {
         return ingresoService.obtenerDetalle(ingresoId);
     }

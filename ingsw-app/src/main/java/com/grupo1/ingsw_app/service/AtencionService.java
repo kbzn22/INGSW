@@ -2,6 +2,8 @@
 package com.grupo1.ingsw_app.service;
 
 import com.grupo1.ingsw_app.domain.*;
+import com.grupo1.ingsw_app.dtos.AtencionLogDTO;
+import com.grupo1.ingsw_app.dtos.AtencionResumenDTO;
 import com.grupo1.ingsw_app.dtos.PacienteEnAtencionDTO;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistence.IAtencionRepository;
@@ -73,4 +75,40 @@ public class AtencionService {
         return ingresoRepo.findEnAtencionActual()
                 .map(PacienteEnAtencionDTO::from);
     }
+    public AtencionLogDTO obtenerDetalleAtencion(UUID idAtencion) {
+
+        Atencion atencion = atencionRepo.findById(idAtencion)
+                .orElseThrow(() ->
+                        new EntidadNoEncontradaException("atencion", idAtencion.toString()));
+
+        Ingreso ingreso = ingresoRepo.findById(atencion.getIngreso().getId())
+                .orElseThrow(() ->
+                        new EntidadNoEncontradaException("ingreso", atencion.getIngreso().getId().toString()));
+
+        String cuilDoctor = atencion.getDoctor() != null && atencion.getDoctor().getCuil() != null
+                ? atencion.getDoctor().getCuil().getValor()
+                : null;
+
+        String cuilPaciente = ingreso.getPaciente() != null && ingreso.getPaciente().getCuil() != null
+                ? ingreso.getPaciente().getCuil().getValor()
+                : null;
+
+        String cuilEnfermera = ingreso.getEnfermera() != null && ingreso.getEnfermera().getCuil() != null
+                ? ingreso.getEnfermera().getCuil().getValor()
+                : null;
+
+        return new AtencionLogDTO(
+                atencion.getId(),
+                ingreso.getId(),
+                cuilDoctor,
+                atencion.getInforme(),
+                atencion.getFechaAtencion(),
+                cuilPaciente,
+                cuilEnfermera,
+                ingreso.getNivelEmergencia() != null ? ingreso.getNivelEmergencia().getNumero() : null,
+                ingreso.getEstadoIngreso() != null ? ingreso.getEstadoIngreso().name() : null,
+                ingreso.getFechaIngreso()
+        );
+    }
+
 }
