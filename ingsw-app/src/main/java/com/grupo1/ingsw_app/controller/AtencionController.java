@@ -39,8 +39,10 @@ public class AtencionController {
         var dto = service.finalizarAtencion(ingresoId, informe);
         return ResponseEntity.ok(dto);
     }
+
     @GetMapping("/atenciones/{id}")
     public ResponseEntity<AtencionLogDTO> getById(@PathVariable UUID id) {
+
         AtencionLogDTO dto = service.obtenerDetalleAtencion(id);
         return ResponseEntity.ok(dto);
     }

@@ -3,7 +3,6 @@ package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.domain.valueobjects.*;
-import com.grupo1.ingsw_app.dtos.IngresoDetalleDTO;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -55,23 +54,63 @@ public class IngresoRepository implements IIngresoRepository {
 
 
     private static final String SQL_FIND_BY_ID = """
-        SELECT
-          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
-          descripcion, fecha_ingreso,
-          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
-        FROM ingreso
-        WHERE id = ?
-        """;
+    SELECT
+      i.id,
+      i.cuil_paciente,
+      i.cuil_enfermera,
+      i.nivel_emergencia,
+      i.estado_ingreso,
+      i.descripcion,
+      i.fecha_ingreso,
+      i.temperatura,
+      i.frec_cardiaca,
+      i.frec_respiratoria,
+      i.sistolica,
+      i.diastolica,
+
+      -- columnas del paciente
+      p.cuil      AS paciente_cuil,
+      p.nombre    AS paciente_nombre,
+      p.apellido  AS paciente_apellido,
+      p.email     AS paciente_email,
+      p.calle     AS paciente_calle,
+      p.numero    AS paciente_numero,
+      p.localidad AS paciente_localidad
+    FROM ingreso i
+    JOIN paciente p ON p.cuil = i.cuil_paciente
+    WHERE i.id = ?
+    """;
 
     private static final String SQL_FIND_BY_ESTADO = """
     SELECT
-      id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
-      descripcion, fecha_ingreso,
-      temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
-    FROM ingreso
-    WHERE estado_ingreso = ?::estado_ingreso
-    ORDER BY nivel_emergencia ASC, fecha_ingreso ASC
+      i.id,
+      i.cuil_paciente,
+      i.cuil_enfermera,
+      i.nivel_emergencia,
+      i.estado_ingreso,
+      i.descripcion,
+      i.fecha_ingreso,
+      i.temperatura,
+      i.frec_cardiaca,
+      i.frec_respiratoria,
+      i.sistolica,
+      i.diastolica,
+
+      -- PACIENTE
+      p.cuil      AS paciente_cuil,
+      p.nombre    AS paciente_nombre,
+      p.apellido  AS paciente_apellido,
+      p.email     AS paciente_email,
+      p.calle     AS paciente_calle,
+      p.numero    AS paciente_numero,
+      p.localidad AS paciente_localidad
+
+    FROM ingreso i
+    JOIN paciente p ON p.cuil = i.cuil_paciente
+    WHERE i.estado_ingreso::text = ?
+    ORDER BY i.nivel_emergencia ASC, i.fecha_ingreso ASC
     """;
+
 
     private static final String SQL_FIND_EN_PROCESO_FIRST = """
         SELECT
@@ -155,9 +194,7 @@ public class IngresoRepository implements IIngresoRepository {
         """;
 
 
-
-
-    // ---------- RowMapper: fila -> Ingreso (dominio)
+    // ---------- RowMapper: fila
 
     private RowMapper<Ingreso> mapper() {
         return (rs, rowNum) -> {
@@ -175,7 +212,7 @@ public class IngresoRepository implements IIngresoRepository {
 
             // NUMERIC → objetos
             Temperatura temp = rs.getBigDecimal("temperatura") != null
-                    ? new Temperatura(rs.getBigDecimal("temperatura").floatValue())
+                    ? new Temperatura(rs.getBigDecimal("temperatura").doubleValue())
                     : null;
 
             FrecuenciaCardiaca fc = rs.getBigDecimal("frec_cardiaca") != null
@@ -194,8 +231,21 @@ public class IngresoRepository implements IIngresoRepository {
                 );
             }
 
-            // Paciente mínimo
-            Paciente paciente = new Paciente(cuilPac, "");
+            // Paciente
+            ObraSocial obraSocial = null;      // por ahora no la usamos en la cola
+            String numeroAfiliado = null;      // idem
+
+            Paciente paciente = new Paciente(
+                    rs.getString("paciente_cuil"),        // cuil
+                    rs.getString("paciente_nombre"),      // nombre
+                    rs.getString("paciente_apellido"),    // apellido
+                    rs.getString("paciente_email"),       // email
+                    rs.getString("paciente_calle"),       // calle
+                    rs.getInt("paciente_numero"),         // número
+                    rs.getString("paciente_localidad"),   // localidad
+                    obraSocial,                           // null por ahora
+                    numeroAfiliado                        // null por ahora
+            );
 
             // Enfermera desde PersonalRepository
             Enfermera enfermera = null;
@@ -219,7 +269,6 @@ public class IngresoRepository implements IIngresoRepository {
             return ingreso;
         };
     }
-
 
     // ---------- Implementación de IIngresoRepository
 
@@ -280,7 +329,7 @@ public class IngresoRepository implements IIngresoRepository {
                 : LocalDateTime.now();
 
         Double temperatura = ingreso.getTemperatura() != null
-                ? (double) ingreso.getTemperatura().getTemperatura()
+                ? ingreso.getTemperatura().getTemperatura()
                 : null;
 
         Double fc = ingreso.getFrecuenciaCardiaca() != null
@@ -328,29 +377,6 @@ public class IngresoRepository implements IIngresoRepository {
     }
 
     @Override
-    public List<Ingreso> findByEstadoPendiente() {
-        String sql = """
-            SELECT
-              id,
-              cuil_paciente,
-              cuil_enfermera,
-              nivel_emergencia,
-              estado_ingreso,
-              descripcion,
-              fecha_ingreso,
-              temperatura,
-              frec_cardiaca,
-              frec_respiratoria,
-              sistolica,
-              diastolica
-            FROM ingreso
-            WHERE estado_ingreso = 'PENDIENTE'
-            ORDER BY fecha_ingreso ASC
-            """;
-
-        return jdbc.query(sql, mapper());
-    }
-    @Override
     public Optional<Ingreso> findById(UUID id) {
         List<Ingreso> resultados = jdbc.query(SQL_FIND_BY_ID, mapper(), id);
         return resultados.stream().findFirst();
@@ -378,7 +404,7 @@ public class IngresoRepository implements IIngresoRepository {
     }
 
     @Override
-    public List<IngresoDetalleDTO> findDetallesParaExport(
+    public List<Ingreso> findDetallesParaExport(
             LocalDateTime desde,
             LocalDateTime hasta,
             String cuilPaciente,
@@ -420,41 +446,71 @@ public class IngresoRepository implements IIngresoRepository {
             LocalDateTime fechaIng =
                     rs.getTimestamp("fecha_ingreso").toLocalDateTime();
 
-            Float  temp   = rs.getObject("temperatura") != null ? rs.getFloat("temperatura") : null;
-            Double fc     = rs.getObject("frec_cardiaca") != null ? rs.getDouble("frec_cardiaca") : null;
-            Double fr     = rs.getObject("frec_respiratoria") != null ? rs.getDouble("frec_respiratoria") : null;
-            Double sist   = rs.getObject("sistolica") != null ? rs.getDouble("sistolica") : null;
-            Double diast  = rs.getObject("diastolica") != null ? rs.getDouble("diastolica") : null;
+            Double  temp   = rs.getObject("temperatura") != null ? rs.getDouble("temperatura") : null;
+            Double fc      = rs.getObject("frec_cardiaca") != null ? rs.getDouble("frec_cardiaca") : null;
+            Double fr      = rs.getObject("frec_respiratoria") != null ? rs.getDouble("frec_respiratoria") : null;
+            Double sist    = rs.getObject("sistolica") != null ? rs.getDouble("sistolica") : null;
+            Double diast   = rs.getObject("diastolica") != null ? rs.getDouble("diastolica") : null;
 
-            // nombreNivel desde el enum
-            String nombreNivel = null;
+            // ---------- Domain objects ----------
+
+            // Valor númerico de nivel → Enum dominio
+            NivelEmergencia nivelEmergencia = null;
             if (nivelNum != null) {
-                var ne = com.grupo1.ingsw_app.domain.NivelEmergencia.fromNumero(nivelNum);
-                nombreNivel = ne.getNombreEnum(); // o getNivel().getDescripcion(), según tu VO
+                nivelEmergencia = com.grupo1.ingsw_app.domain.NivelEmergencia.fromNumero(nivelNum);
             }
 
-            return new IngresoDetalleDTO(
-                    idIngreso,
+            // Temperatura / Frecuencias / TA como VOs
+            Temperatura temperatura = temp != null ? new Temperatura(temp) : null;
+            FrecuenciaCardiaca frecCard = fc != null ? new FrecuenciaCardiaca(fc) : null;
+            FrecuenciaRespiratoria frecResp = fr != null ? new FrecuenciaRespiratoria(fr) : null;
+
+            TensionArterial tensionArterial = null;
+            if (sist != null && diast != null) {
+                tensionArterial = new TensionArterial(sist, diast);
+            }
+
+            // Obra social “liviana”: solo nombre, sin id (ajustá al ctor real)
+            ObraSocial obraSocial = null;
+            if (obraSoc != null) {
+                // si tu ObraSocial tiene ctor (Long id, String nombre):
+                obraSocial = new ObraSocial(null, obraSoc);
+            }
+
+            // Paciente “para export”: usamos los datos que trae la consulta
+            // Ajustado a tu ctor:
+            // Paciente(String cuil, String nombre, String apellido, String email,
+            //          String calle, Integer numero, String localidad,
+            //          ObraSocial obraSocial, String numeroAfiliado)
+            Paciente paciente = new Paciente(
                     cuilPac,
                     nomPac,
                     apePac,
-                    obraSoc,
-                    nroAfi,
-                    cuilEnf,
-                    nomEnf,
-                    apeEnf,
-                    nivelNum,
-                    nombreNivel,
-                    estado,
-                    fechaIng,
-                    informe,
-                    temp,
-                    fc,
-                    fr,
-                    sist,
-                    diast
+                    null,        // email no viene en esta consulta
+                    null,        // calle
+                    1,           // número “dummy” válido si tu dominio no acepta null/0
+                    null,        // localidad
+                    obraSocial,
+                    nroAfi
             );
+
+            // Enfermera: podés dejarla null si no la necesitás en el dominio del Ingreso exportado
+            Enfermera enfermera = null;
+            // Si quisieras, podrías armar una Enfermera “liviana” con cuil/nom/ape.
+
+            Ingreso ingreso = new Ingreso(paciente, enfermera, nivelEmergencia);
+            ingreso.setId(idIngreso);
+            ingreso.setEstadoIngreso(EstadoIngreso.valueOf(estado));
+            ingreso.setDescripcion(informe);
+            ingreso.setFechaIngreso(fechaIng);
+            ingreso.setTemperatura(temperatura);
+            ingreso.setFrecuenciaCardiaca(frecCard);
+            ingreso.setFrecuenciaRespiratoria(frecResp);
+            ingreso.setTensionArterial(tensionArterial);
+
+            return ingreso;
         }, params.toArray());
     }
+
 
 }

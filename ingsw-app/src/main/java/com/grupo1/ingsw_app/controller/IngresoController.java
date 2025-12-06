@@ -1,6 +1,7 @@
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.domain.ColaItem;
+import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.dtos.*;
 import com.grupo1.ingsw_app.service.AtencionService;
 import com.grupo1.ingsw_app.service.IngresoService;
@@ -21,10 +22,15 @@ public class IngresoController {
     private final IngresoService ingresoService;
     private final AtencionService atencionService;
 
-    public IngresoController(IngresoService ingresoService,
-                                   AtencionService atencionService) {
+    public IngresoController(IngresoService ingresoService, AtencionService atencionService) {
         this.ingresoService = ingresoService;
         this.atencionService = atencionService;
+    }
+
+    @GetMapping("/{ingresoId}/detalle") //revisalo. no es mejor que devuelva el ingreso comun y corriente con todos lo datos del paciente?
+    public ResponseEntity<?> buscarPorId(@PathVariable UUID ingresoId) {
+        Ingreso ingreso = ingresoService.obtenerIngreso(ingresoId);
+        return ResponseEntity.ok(ingreso);
     }
 
     @PostMapping
@@ -32,14 +38,14 @@ public class IngresoController {
 
         String cuilPaciente          = asString(body.get("cuilPaciente"), "cuilPaciente", "es obligatorio indicar el CUIL del paciente");
         String informe               = asString(body.get("informe"), "informe", "no puede estar vacío ni contener solo espacios");
-        Float  temperatura           = parseFloat(body.get("temperatura"), "temperatura", "debe tener valores positivos válidos (grados Celsius)");
+        Double  temperatura           = parseDouble(body.get("temperatura"), "temperatura", "debe tener valores positivos válidos (grados Celsius)");
         Double frecuenciaCardiaca    = parseDouble(body.get("frecuenciaCardiaca"), "frecuenciaCardiaca", "debe tener valores positivos válidos (latidos por minuto)");
         Double frecuenciaRespiratoria= parseDouble(body.get("frecuenciaRespiratoria"), "frecuenciaRespiratoria", "debe tener valores positivos válidos (respiraciones por minuto)");
         Double frecuenciaSistolica   = parseDouble(body.get("frecuenciaSistolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)");
         Double frecuenciaDiastolica  = parseDouble(body.get("frecuenciaDiastolica"), "tensionArterial", "debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)");
         Integer nivel                = parseInteger(body.get("nivel"), "nivel", "la prioridad ingresada no existe o es nula");
 
-        IngresoRequest req = new IngresoRequest(
+        IngresoRequest request = new IngresoRequest(
                 cuilPaciente,
                 informe,
                 temperatura,
@@ -51,7 +57,7 @@ public class IngresoController {
 
         );
 
-        var ingreso = ingresoService.registrarIngreso(req);
+        var ingreso = ingresoService.registrarIngreso(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ingreso);
     }
@@ -63,18 +69,14 @@ public class IngresoController {
 
     @GetMapping("/cola")
     public List<ColaItem> obtenerCola() {
-        return ingresoService.obtenerColaPendienteDTO();
+        return ingresoService.obtenerColaPendiente();
     }
 
-    @GetMapping("/en-atencion")
+    @GetMapping("/en-atencion") //revisalo kbza. esta bien que todas esas cosas las haga el controlador?
     public ResponseEntity<PacienteEnAtencionDTO> getEnAtencion() {
         return atencionService.obtenerPacienteEnAtencion()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
-    }
-    @GetMapping("/{ingresoId}/detalle")
-    public IngresoDetalleDTO obtenerDetalleIngreso(@PathVariable UUID ingresoId) {
-        return ingresoService.obtenerDetalle(ingresoId);
     }
 }
 

@@ -9,22 +9,20 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Ingreso {
-    Paciente paciente;
-    UUID id;
-    Enfermera enfermera;
-    NivelEmergencia nivelEmergencia;
-    EstadoIngreso estadoIngreso=EstadoIngreso.PENDIENTE;
-    String descripcion;
-    LocalDateTime fechaIngreso = LocalDateTime.now();
-    Temperatura temperatura;
-    TensionArterial tensionArterial;
-    FrecuenciaCardiaca frecuenciaCardiaca;
-    FrecuenciaRespiratoria frecuenciaRespiratoria;
-    // dentro de Ingreso
     private Atencion atencion;
+    private Paciente paciente;
+    private UUID id;
+    private Enfermera enfermera;
+    private NivelEmergencia nivelEmergencia;
+    private EstadoIngreso estadoIngreso = EstadoIngreso.PENDIENTE;
+    private String descripcion;
+    private LocalDateTime fechaIngreso = LocalDateTime.now();
+    private Temperatura temperatura;
+    private TensionArterial tensionArterial;
+    private FrecuenciaCardiaca frecuenciaCardiaca;
+    private FrecuenciaRespiratoria frecuenciaRespiratoria;
 
     public Ingreso() {
-
     }
 
     public Ingreso(Paciente paciente, Enfermera enfermera, NivelEmergencia nivelEmergencia) {
@@ -32,6 +30,29 @@ public class Ingreso {
         this.enfermera = enfermera;
         this.nivelEmergencia = nivelEmergencia;
         this.id = UUID.randomUUID();
+    }
+
+    public Ingreso(
+            Paciente paciente,
+            Enfermera enfermera,
+            Integer nivelEmergencia,
+            String descripcion,
+            Double temperatura,
+            Double frecuenciaSistolica,
+            Double frecuenciaDiastolica,
+            Double frecuenciaCardiaca,
+            Double frecuenciaRespiratoria
+            ) {
+        this.paciente = paciente;
+        this.enfermera = enfermera;
+        this.id = UUID.randomUUID();
+        this.nivelEmergencia = NivelEmergencia.fromNumero(nivelEmergencia);
+        this.descripcion = descripcion;
+        this.fechaIngreso = LocalDateTime.now();
+        this.temperatura = new Temperatura(temperatura);
+        this.tensionArterial = new TensionArterial(frecuenciaSistolica, frecuenciaDiastolica);
+        this.frecuenciaCardiaca = new FrecuenciaCardiaca(frecuenciaCardiaca);
+        this.frecuenciaRespiratoria = new FrecuenciaRespiratoria(frecuenciaRespiratoria);
     }
 
     public Paciente getPaciente() {
@@ -79,9 +100,6 @@ public class Ingreso {
     }
 
     public void setDescripcion(String descripcion) {
-        if (descripcion == null || descripcion.trim().isEmpty()) {
-            throw new IllegalArgumentException("El informe es obligatorio y no puede estar vacío ni contener solo espacios");
-        }
         this.descripcion = descripcion;
     }
 
