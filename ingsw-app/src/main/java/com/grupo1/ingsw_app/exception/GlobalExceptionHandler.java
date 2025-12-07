@@ -42,6 +42,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    @ExceptionHandler(PacienteRedundanteEnColaException.class)
+    public ResponseEntity<ApiError> handlePacienteRedundanteEnCola(
+            PacienteRedundanteEnColaException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                ex.getMessage(),
+                request,
+                "PACIENTE_YA_EN_COLA"
+        );
+    }
+
     // ======= Captura general =======
 
     @ExceptionHandler(Exception.class)

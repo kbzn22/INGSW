@@ -6,6 +6,7 @@ import com.grupo1.ingsw_app.domain.ColaItem;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
+import com.grupo1.ingsw_app.exception.PacienteRedundanteEnColaException;
 import com.grupo1.ingsw_app.persistence.IIngresoRepository;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.security.Sesion;
@@ -42,10 +43,21 @@ public class IngresoService {
             throw new CampoInvalidoException("informe", "no puede estar vacío ni contener solo espacios");
         }
 
-        var paciente = repoPaciente.findByCuil(request.getCuilPaciente())
-                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: " + request.getCuilPaciente()));
+        String cuil = request.getCuilPaciente();
+
+        var paciente = repoPaciente.findByCuil(cuil)
+                .orElseThrow(() -> new EntidadNoEncontradaException("paciente", "CUIL: " + cuil));
 
         var enfermera = sesionActual.getEnfermera();
+
+        List<Ingreso> pendientes = repoIngreso.findByEstado(EstadoIngreso.PENDIENTE);
+
+        boolean yaEnCola = pendientes.stream()
+                .anyMatch(ing -> ing.getPaciente().getCuil().getValor().equals(cuil));
+
+        if(yaEnCola){
+            throw new PacienteRedundanteEnColaException(cuil);
+        }
 
         Ingreso ingreso = new Ingreso(
                 paciente,
