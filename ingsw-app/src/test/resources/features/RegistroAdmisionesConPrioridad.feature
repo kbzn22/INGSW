@@ -8,8 +8,8 @@ Feature: Registro de admisiones en urgencias
       |  cuil         | nombre | apellido  | matricula | email           |
       | 20-30574930-4 | Maria  | Del Valle | ABC123    | maria@gmail.com |
     And existe en el sistema el paciente:
-      | cuil           | nombre |
-      | 20-44477310-4  | Enzo   |
+      | cuil           | nombre | apellido | email                     | calle     | numero | localidad |
+      | 20-44477310-4  | Enzo   | Juarez   | e.gustavojuarez@gmail.com | Sarmiento | 813    | El Carmen |
 
   Scenario: Registro exitoso de admisión de un paciente existente
     When registro el ingreso del paciente con los siguientes datos:

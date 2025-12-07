@@ -125,7 +125,28 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
     @And("existe en el sistema el paciente:")
     public void existeEnElSistemaElPaciente(DataTable dataTable) {
         Map<String, String> fila = dataTable.asMaps(String.class, String.class).get(0);
-        Paciente paciente = new Paciente(fila.get("cuil"), fila.get("nombre"));
+
+        String cuil = fila.get("cuil");
+        String nombre = fila.get("nombre");
+        String apellido = fila.get("apellido");
+        String email = fila.get("email");
+        String calle = fila.get("calle");
+        Integer numero = Integer.valueOf(fila.get("numero"));
+        String localidad = fila.get("localidad");
+
+        // Por ahora ignoramos obra social en esta prueba
+        Paciente paciente = new Paciente(
+                cuil,
+                nombre,
+                apellido,
+                email,
+                calle,
+                numero,
+                localidad,
+                null,
+                null
+        );
+
         pacienteRepo.save(paciente);
         pacienteActual = paciente;
     }
@@ -222,7 +243,7 @@ public class RegistroAdmisionesConPrioridadStepDefinitions extends CucumberSprin
 
     @And("el paciente entra en la cola de atención")
     public void elPacienteEntraEnLaColaDeAtención() {
-        List<ColaItem> ingresos = ingresoService.obtenerColaPendienteDTO();
+        List<ColaItem> ingresos = ingresoService.obtenerColaPendiente();
 
         boolean estaEnCola = ingresos.stream()
                 .anyMatch(item -> item.getCuil()
