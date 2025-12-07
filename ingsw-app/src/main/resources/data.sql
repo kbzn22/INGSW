@@ -98,8 +98,6 @@ INSERT INTO ingreso (
 )
 VALUES
     -- PENDIENTES
-    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1','20-44555000-4','20-12547856-4',3,
-     'PENDIENTE','Dolor de cabeza',NOW(),37.0,80,18,120,80),
 
     ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2','20-44666000-4','20-12547856-4',5,
      'PENDIENTE','Fuerte dolor abdominal',NOW(),38.2,110,22,140,90),
