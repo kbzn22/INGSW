@@ -127,15 +127,44 @@ public class IngresoRepository implements IIngresoRepository {
 
 
     private static final String SQL_FIND_EN_ATENCION = """
-    SELECT
-      id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
-      descripcion, fecha_ingreso,
-      temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
-    FROM ingreso
-    WHERE estado_ingreso = 'EN_PROCESO'
-    ORDER BY fecha_ingreso ASC
-    LIMIT 1
+        SELECT
+          i.id,
+          i.cuil_paciente,
+          i.cuil_enfermera,
+          i.nivel_emergencia,
+          i.estado_ingreso,
+          i.descripcion,
+          i.fecha_ingreso,
+          i.temperatura,
+          i.frec_cardiaca,
+          i.frec_respiratoria,
+          i.sistolica,
+          i.diastolica,
+
+          -- datos del paciente (necesarios para el mapper)
+          p.cuil      AS paciente_cuil,
+          p.nombre    AS paciente_nombre,
+          p.apellido  AS paciente_apellido,
+          p.email     AS paciente_email,
+          p.calle     AS paciente_calle,
+          p.numero    AS paciente_numero,
+          p.localidad AS paciente_localidad,
+
+          -- datos de la atención (por si después querés usarlos)
+          a.cuil_doctor,
+          a.informe,
+          a.fecha_atencion
+
+        FROM ingreso i
+        JOIN paciente p ON p.cuil = i.cuil_paciente
+        JOIN atencion a ON a.ingreso_id = i.id
+        WHERE i.estado_ingreso = 'EN_PROCESO'
+        AND a.cuil_doctor = ?
+        ORDER BY a.fecha_atencion DESC
+        LIMIT 1
     """;
+
+
     private static final String SQL_LOG_INGRESOS_BASE = """
     SELECT
       id,
@@ -386,22 +415,24 @@ public class IngresoRepository implements IIngresoRepository {
     public List<Ingreso> findByEstado(EstadoIngreso estado) {
         return jdbc.query(SQL_FIND_BY_ESTADO, mapper(), estado.name());
     }
-
+    /*
     @Override
     public Optional<Ingreso> findFirstEnProceso() {
         List<Ingreso> resultados = jdbc.query(SQL_FIND_EN_PROCESO_FIRST, mapper());
         return resultados.stream().findFirst();
-    }
+    }*/
     @Override
     public int countByEstado(EstadoIngreso estado) {
         return jdbc.queryForObject(SQL_COUNT_BY_ESTADO, Integer.class, estado.name());
     }
 
     @Override
-    public Optional<Ingreso> findEnAtencionActual() {
-        return jdbc.query(SQL_FIND_EN_ATENCION, mapper())
-                .stream().findFirst();
+    public Optional<Ingreso> findEnAtencionActual(String cuilDoctor) {
+        return jdbc.query(SQL_FIND_EN_ATENCION, mapper(), cuilDoctor)
+                .stream()
+                .findFirst();
     }
+
 
     @Override
     public List<Ingreso> findDetallesParaExport(

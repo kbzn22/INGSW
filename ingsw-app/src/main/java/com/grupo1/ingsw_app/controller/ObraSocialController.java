@@ -1,8 +1,7 @@
-// src/main/java/com/grupo1/ingsw_app/controller/ObraSocialController.java
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.dtos.ObraSocialDto;
-import com.grupo1.ingsw_app.service.ObraSocialService;
+import com.grupo1.ingsw_app.service.IngresoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,15 +11,15 @@ import java.util.List;
 @RequestMapping("/api/obras-sociales")
 public class ObraSocialController {
 
-    private final ObraSocialService obraSocialService;
+    private final IngresoService ingresoService;
 
-    public ObraSocialController(ObraSocialService obraSocialService) {
-        this.obraSocialService = obraSocialService;
+    public ObraSocialController(IngresoService ingresoService) {
+        this.ingresoService = ingresoService;
     }
 
     @GetMapping
     public ResponseEntity<List<ObraSocialDto>> listar() {
-        var obras = obraSocialService.listarObrasSociales();
+        var obras = ingresoService.listarObrasSociales();
         return ResponseEntity.ok(obras);
     }
 }

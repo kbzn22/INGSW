@@ -3,10 +3,13 @@ package com.grupo1.ingsw_app.service;
 import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.domain.ColaItem;
+import com.grupo1.ingsw_app.dtos.ObraSocialDto;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.exception.PacienteRedundanteEnColaException;
+import com.grupo1.ingsw_app.external.IObraSocialClient;
+import com.grupo1.ingsw_app.external.ObraSocialClient;
 import com.grupo1.ingsw_app.persistence.IIngresoRepository;
 import com.grupo1.ingsw_app.persistence.IPacienteRepository;
 import com.grupo1.ingsw_app.security.Sesion;
@@ -21,14 +24,13 @@ public class IngresoService {
     private final IIngresoRepository repoIngreso;
     private final IPacienteRepository repoPaciente;
     private final Sesion sesionActual;
-    private final ColaAtencion cola;
+    private IObraSocialClient obraSocialClient;
 
-
-    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesionActual) {
+    public IngresoService(IIngresoRepository repoIngreso, IPacienteRepository repoPaciente, Sesion sesionActual, ObraSocialClient obraSocialClient) {
         this.repoIngreso = repoIngreso;
         this.repoPaciente = repoPaciente;
         this.sesionActual = sesionActual;
-        this.cola = new ColaAtencion();
+        this.obraSocialClient = obraSocialClient;
     }
 
     public Ingreso obtenerIngreso(UUID ingresoId) { //revisado
@@ -106,5 +108,9 @@ public class IngresoService {
         }
 
         return cola.verCola();
+    }
+
+    public List<ObraSocialDto> listarObrasSociales() { //revisado
+        return obraSocialClient.listarObrasSociales();
     }
 }

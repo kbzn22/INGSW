@@ -54,7 +54,6 @@ public class IngresoController {
                 frecuenciaSistolica,
                 frecuenciaDiastolica,
                 nivel
-
         );
 
         var ingreso = ingresoService.registrarIngreso(request);

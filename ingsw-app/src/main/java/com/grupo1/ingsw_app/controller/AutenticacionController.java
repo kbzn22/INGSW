@@ -31,6 +31,7 @@ public class AutenticacionController {
     public ResponseEntity<Void> loginForm(@RequestParam String username, @RequestParam String password) {
         return loginJson(new LoginReq(username, password));
     }
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(value = "SESSION_ID", required = false) String sid) {
@@ -51,6 +52,7 @@ public class AutenticacionController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
     }
+
     @GetMapping("/me")
     public ResponseEntity<?> me(
             @CookieValue(name = "SESSION_ID", required = false) String sid) {

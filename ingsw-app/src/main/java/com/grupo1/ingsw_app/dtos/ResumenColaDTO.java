@@ -1,4 +1,3 @@
-
 package com.grupo1.ingsw_app.dtos;
 
 public class ResumenColaDTO {
@@ -13,7 +12,15 @@ public class ResumenColaDTO {
         this.finalizados = finalizados;
     }
 
-    public int getPendientes()   { return pendientes; }
-    public int getEnAtencion()   { return enAtencion; }
-    public int getFinalizados()  { return finalizados; }
+    public int getPendientes() {
+        return pendientes;
+    }
+
+    public int getEnAtencion() {
+        return enAtencion;
+    }
+
+    public int getFinalizados() {
+        return finalizados;
+    }
 }

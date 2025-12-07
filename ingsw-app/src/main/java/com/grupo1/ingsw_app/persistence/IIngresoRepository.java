@@ -14,13 +14,19 @@ public interface IIngresoRepository {
                              String cuilEnfermera);
 
     void save(Ingreso ingreso);
+
     boolean existsById(String id);
+
     void clear();
+
     Optional<Ingreso> findById(UUID id);
+
     List<Ingreso> findByEstado(EstadoIngreso estado);
-    Optional<Ingreso> findFirstEnProceso();
-    Optional<Ingreso> findEnAtencionActual();
+
+    Optional<Ingreso> findEnAtencionActual(String cuilDoctor);
+
     int countByEstado(EstadoIngreso estado);
+
     List<Ingreso> findDetallesParaExport(
             LocalDateTime desde,
             LocalDateTime hasta,

@@ -72,9 +72,14 @@ public class AtencionService {
     }
 
     public Optional<PacienteEnAtencionDTO> obtenerPacienteEnAtencion() {
-        return ingresoRepo.findEnAtencionActual()
+
+        Doctor doctor = sesionActual.getDoctor();
+        String cuilDoctor = doctor.getCuil().getValor();
+
+        return ingresoRepo.findEnAtencionActual(cuilDoctor)
                 .map(PacienteEnAtencionDTO::from);
     }
+
     public AtencionLogDTO obtenerDetalleAtencion(UUID idAtencion) {
 
         Atencion atencion = atencionRepo.findById(idAtencion)
