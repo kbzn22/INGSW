@@ -67,14 +67,14 @@
 			<version>7.14.0</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- Cucumber JUnit (usa JUnit4) -->
+
 		<dependency>
 			<groupId>io.cucumber</groupId>
 			<artifactId>cucumber-junit</artifactId>
 			<version>7.14.0</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- JUnit4 (porque cucumber-junit se apoya en él) -->
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

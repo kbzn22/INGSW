@@ -35,7 +35,7 @@ public class AtencionController {
             @PathVariable UUID ingresoId,
             @RequestBody Map<String, String> body) {
 
-        String informe = body.getOrDefault("informe", "");
+        String informe = body.get("informe");
         var dto = service.finalizarAtencion(ingresoId, informe);
         return ResponseEntity.ok(dto);
     }

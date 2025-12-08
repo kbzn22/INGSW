@@ -1,5 +1,6 @@
 
 
+
 DO '
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = ''estado_ingreso'') THEN

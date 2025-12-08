@@ -55,6 +55,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 "PACIENTE_YA_EN_COLA"
         );
     }
+    @ExceptionHandler(DoctorYaTienePacienteEnAtencionException.class)
+    public ResponseEntity<ApiError> handleDoctorYaTienePaciente(
+            DoctorYaTienePacienteEnAtencionException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                ex.getMessage(),
+                request,
+                "DOCTOR_YA_TIENE_PACIENTE_EN_ATENCION"
+        );
+    }
 
     // ======= Captura general =======
 

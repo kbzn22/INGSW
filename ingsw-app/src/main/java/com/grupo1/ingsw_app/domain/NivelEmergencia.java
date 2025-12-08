@@ -5,7 +5,7 @@ import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 
 import java.time.Duration;
 
-/** Enum asociado 1–1 a un Nivel estático (no necesita repositorio). */
+
 public enum NivelEmergencia {
     CRITICA     (new Nivel(1, "Rojo",       Duration.ZERO)),
     EMERGENCIA  (new Nivel(2, "Naranja",    Duration.ofMinutes(10))),
@@ -31,7 +31,6 @@ public enum NivelEmergencia {
         return this.name();
     }
 
-    // Utilidad: buscar por número de nivel (1..5).
     public static NivelEmergencia fromNumero(Integer numero) {
         if (numero == null) {
             throw new CampoInvalidoException(

@@ -214,13 +214,33 @@ public class IngresoRepository implements IIngresoRepository {
     WHERE i.fecha_ingreso BETWEEN ? AND ?
     """;
     private static final String SQL_FIND_LOG_BASE = """
-        SELECT
-          id, cuil_paciente, cuil_enfermera, nivel_emergencia, estado_ingreso,
-          descripcion, fecha_ingreso,
-          temperatura, frec_cardiaca, frec_respiratoria, sistolica, diastolica
-        FROM ingreso
-        WHERE 1=1
-        """;
+    SELECT
+      i.id,
+      i.cuil_paciente,
+      i.cuil_enfermera,
+      i.nivel_emergencia,
+      i.estado_ingreso,
+      i.descripcion,
+      i.fecha_ingreso,
+      i.temperatura,
+      i.frec_cardiaca,
+      i.frec_respiratoria,
+      i.sistolica,
+      i.diastolica,
+
+      -- PACIENTE (las mismas columnas que usa el mapper)
+      p.cuil      AS paciente_cuil,
+      p.nombre    AS paciente_nombre,
+      p.apellido  AS paciente_apellido,
+      p.email     AS paciente_email,
+      p.calle     AS paciente_calle,
+      p.numero    AS paciente_numero,
+      p.localidad AS paciente_localidad
+
+    FROM ingreso i
+    JOIN paciente p ON p.cuil = i.cuil_paciente
+    WHERE 1=1
+    """;
 
 
     // ---------- RowMapper: fila
@@ -310,25 +330,47 @@ public class IngresoRepository implements IIngresoRepository {
         StringBuilder sql = new StringBuilder(SQL_FIND_LOG_BASE);
         List<Object> params = new ArrayList<>();
 
+        // Filtro por fecha DESDE (si vino)
         if (desde != null) {
-            sql.append(" AND fecha_ingreso >= ? ");
+            sql.append(" AND i.fecha_ingreso >= ? ");
             params.add(Timestamp.valueOf(desde));
         }
+
+        // Filtro por fecha HASTA (si vino)
         if (hasta != null) {
-            sql.append(" AND fecha_ingreso <= ? ");
+            sql.append(" AND i.fecha_ingreso <= ? ");
             params.add(Timestamp.valueOf(hasta));
         }
-        if (cuilPaciente != null && !cuilPaciente.isBlank()) {
-            sql.append(" AND cuil_paciente = ? ");
-            params.add(cuilPaciente);
-        }
-        if (cuilEnfermera != null && !cuilEnfermera.isBlank()) {
-            sql.append(" AND cuil_enfermera = ? ");
-            params.add(cuilEnfermera);
+
+        // Filtros por CUIL (PACIENTE / ENFERMERA) con OR entre ellos
+        boolean tieneCuilPaciente = cuilPaciente != null && !cuilPaciente.isBlank();
+        boolean tieneCuilEnfermera = cuilEnfermera != null && !cuilEnfermera.isBlank();
+
+        if (tieneCuilPaciente || tieneCuilEnfermera) {
+            sql.append(" AND ( ");
+
+            boolean first = true;
+
+            if (tieneCuilPaciente) {
+                sql.append(" i.cuil_paciente = ? ");
+                params.add(cuilPaciente);
+                first = false;
+            }
+
+            if (tieneCuilEnfermera) {
+                if (!first) {
+                    sql.append(" OR ");
+                }
+                sql.append(" i.cuil_enfermera = ? ");
+                params.add(cuilEnfermera);
+            }
+
+            sql.append(" ) ");
         }
 
-        sql.append(" ORDER BY fecha_ingreso ASC ");
+        sql.append(" ORDER BY i.fecha_ingreso ASC ");
 
+        System.out.println(sql.toString());
         return jdbc.query(sql.toString(), mapper(), params.toArray());
     }
     @Override
@@ -448,15 +490,23 @@ public class IngresoRepository implements IIngresoRepository {
         params.add(Timestamp.valueOf(hasta));
 
         if (cuilPaciente != null && !cuilPaciente.isBlank()) {
-            sql.append(" AND i.cuil_paciente = ?");
+            sql.append(" AND REPLACE(TRIM(cuil_paciente), '-', '') = REPLACE(TRIM(?), '-', '') ");
             params.add(cuilPaciente);
         }
         if (cuilEnfermera != null && !cuilEnfermera.isBlank()) {
-            sql.append(" AND i.cuil_enfermera = ?");
+            sql.append(" AND REPLACE(TRIM(cuil_enfermera), '-', '') = REPLACE(TRIM(?), '-', '') ");
             params.add(cuilEnfermera);
         }
 
         sql.append(" ORDER BY i.fecha_ingreso ASC");
+
+        System.out.println("=== SQL FINAL EJECUTADO ===");
+        System.out.println(sql.toString());
+        System.out.println("=== PARAMS ===");
+        for (Object p : params) {
+            System.out.println(" - " + p);
+        }
+        System.out.println("============================");
 
         return jdbc.query(sql.toString(), (rs, rowNum) -> {
             UUID idIngreso = rs.getObject("id_ingreso", java.util.UUID.class);
@@ -538,6 +588,7 @@ public class IngresoRepository implements IIngresoRepository {
             ingreso.setFrecuenciaCardiaca(frecCard);
             ingreso.setFrecuenciaRespiratoria(frecResp);
             ingreso.setTensionArterial(tensionArterial);
+
 
             return ingreso;
         }, params.toArray());

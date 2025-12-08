@@ -49,9 +49,18 @@ public class AdminLogService {
 
         LocalDateTime d = toStart(desde);
         LocalDateTime h = toEnd(hasta);
-
+        System.out.println(cuilPaciente);
         List<Ingreso> ingresos = ingresoRepo.findForLog(d, h, cuilPaciente, cuilEnfermera);
-
+        System.out.println("Cantidad de ingresos: " + ingresos.size());
+        for (Ingreso ing : ingresos) {
+            System.out.println("Ingreso ID = " + ing.getId()
+                    + " | pacienteCuil=" + (ing.getPaciente() != null ? ing.getPaciente().getCuil().getValor() : "null")
+                    + " | enfermeraCuil=" + (ing.getEnfermera() != null ? ing.getEnfermera().getCuil().getValor() : "null")
+                    + " | nivel=" + (ing.getNivelEmergencia() != null ? ing.getNivelEmergencia().getNumero() : null)
+                    + " | estado=" + (ing.getEstadoIngreso() != null ? ing.getEstadoIngreso().name() : null)
+                    + " | fechaIngreso=" + ing.getFechaIngreso()
+            );
+        }
         try (Workbook wb = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 

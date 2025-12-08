@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequestMapping("/admin/logs")
@@ -29,6 +31,8 @@ public class AdminLogController {
             @RequestParam(required = false) String cuilPaciente,
             @RequestParam(required = false) String cuilEnfermera
     ) {
+        LocalDateTime desdeDT = (desde != null) ? desde.atStartOfDay() : null;
+        LocalDateTime hastaDT = (hasta != null) ? hasta.atTime(LocalTime.MAX) : null;
         byte[] bytes = logService.exportIngresos(desde, hasta, cuilPaciente, cuilEnfermera);
 
         return ResponseEntity.ok()
