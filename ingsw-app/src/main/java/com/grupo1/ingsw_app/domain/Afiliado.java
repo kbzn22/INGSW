@@ -13,4 +13,5 @@ public class Afiliado {
     public ObraSocial getObraSocial() {
         return obraSocial;
     }
+    public String getNumeroAfiliado() { return numeroAfiliado; }
 }

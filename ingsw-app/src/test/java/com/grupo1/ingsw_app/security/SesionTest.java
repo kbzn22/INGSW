@@ -21,7 +21,7 @@ class SesionTest {
 
     private static Doctor doc(String username) {
         return new Doctor( "Maria", "Del Valle","20-30574930-4",  "maria@hospi.com","ABC123",
-                new Usuario(username, "$2a$10$hash_simbolico")); // valor simbólico
+                new Usuario(username, "$2a$10$hash_simbolico"));
     }
 
     private static Enfermera enf(String username) {
@@ -31,7 +31,7 @@ class SesionTest {
 
     @Test
     @DisplayName("iniciar() establece id, usuario, persona y expiración futura (horas)")
-    void iniciar_ok() {
+    void cuandoInicioSesion_DeberiaEstablecerIDUsuarioPersonaYSesionTime() {
         Sesion s = new Sesion();
         Instant before = Instant.now();
         s.iniciar("delvallem", doc("delvallem"), 2L);
@@ -44,7 +44,7 @@ class SesionTest {
         assertThat(s.getUsuario()).isEqualTo("delvallem");
         assertThat(s.getPersona()).isInstanceOf(Doctor.class);
 
-        // expiresAt ≈ now + 2h (tolerancia 5s)
+
         Duration tol = Duration.ofSeconds(5);
         Instant min = before.plus(Duration.ofHours(2)).minus(tol);
         Instant max = after .plus(Duration.ofHours(2)).plus(tol);
@@ -55,7 +55,7 @@ class SesionTest {
 
     @Test
     @DisplayName("limpiar() deja la sesión vacía y isExpired() = true")
-    void limpiar_ok() {
+    void cuandoLimpioSesion_DeberiaQuedarSesionVacia() {
         Sesion s = new Sesion();
         s.iniciar("juareze", enf("juareze"), 1L);
 
@@ -86,7 +86,7 @@ class SesionTest {
 
     @Test
     @DisplayName("setUsuario(Enfermera) extrae username, genera id y fija vencimiento 2h")
-    void setUsuario_enfermera_ok() {
+    void cuandoSeteoEnfermera_DeberiaGenerarIdYTiempoDeSesion() {
         Sesion s = new Sesion();
         Instant before = Instant.now();
         s.setUsuario(enf("juareze"));
@@ -106,7 +106,7 @@ class SesionTest {
 
     @Test
     @DisplayName("setUsuario(Doctor) extrae username, genera id y fija vencimiento 2h")
-    void setUsuario_doctor_ok() {
+    void cuandoSeteoDoctor_DeberiaGenerarIdYTiempoDeSesion() {
         Sesion s = new Sesion();
         s.setUsuario(doc("delvallem"));
 
@@ -118,7 +118,7 @@ class SesionTest {
 
     @Test
     @DisplayName("setUsuario(null) lanza IllegalArgumentException")
-    void setUsuario_null() {
+    void cuandoElUsuarioSeteadoEsNull_DeberiaLanzarExepcion() {
         Sesion s = new Sesion();
         assertThatThrownBy(() -> s.setUsuario(null))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -127,7 +127,7 @@ class SesionTest {
 
     @Test
     @DisplayName("setUsuario(Persona sin Usuario embebido) lanza IllegalStateException")
-    void setUsuario_sin_usuario_embebido() {
+    void cuandoLaPersonaNoTieneUsuario_DeberiaTirarExcepcion() {
         Sesion s = new Sesion();
 
         // Persona anónima (subtipo) sin usuario embebido
@@ -139,7 +139,7 @@ class SesionTest {
 
     @Test
     @DisplayName("getEnfermera() devuelve la enfermera si la sesión es de enfermería")
-    void getEnfermera_ok() {
+    void cuandoLaSesionEsDeUnaEnfermera_YSolicitoEnfermera_DeberiaDevolverLaEnfermera(){
         Sesion s = new Sesion();
         s.setUsuario(enf("juareze"));
 
@@ -151,7 +151,7 @@ class SesionTest {
 
     @Test
     @DisplayName("getEnfermera() en sesión de Doctor lanza SecurityException (rol requerido)")
-    void getEnfermera_con_doctor() {
+    void cuandoLaSesionEsDeUnDoctor_YSolicitoEnfermera_DeberiaTirarExcepcion() {
         Sesion s = new Sesion();
         s.setUsuario(doc("delvallem"));
 
@@ -162,7 +162,7 @@ class SesionTest {
 
     @Test
     @DisplayName("getPersona() sin autenticar lanza IllegalStateException explícita")
-    void getPersona_sin_autenticar() {
+    void cuandoSolicitoPersonaSinAutenticar_DeberiaLanzarExpecion() {
         Sesion s = new Sesion();
         assertThatThrownBy(s::getPersona)
                 .isInstanceOf(IllegalStateException.class)

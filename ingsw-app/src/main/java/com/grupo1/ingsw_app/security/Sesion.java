@@ -25,6 +25,7 @@ public class Sesion {
     private Instant expiresAt;
     private Persona persona;
 
+
     // ---- API de gestión ----
     public void iniciar(String usuario, Persona persona, long horas) {
         this.id = nuevoId();
@@ -60,6 +61,10 @@ public class Sesion {
         if (persona instanceof Enfermera e) return e;
         throw new SecurityException("Se requiere rol ENFERMERIA");
     }
+    public Doctor getDoctor() {
+        if (persona instanceof Doctor d) return d;
+        throw new SecurityException("Se requiere rol DOCTOR");
+    }
 
     public void setUsuario(Persona persona) {
         if (persona == null)
@@ -89,5 +94,14 @@ public class Sesion {
         byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public static Sesion restaurar(String id, String usuario, Persona persona, Instant expiresAt) {
+        Sesion s = new Sesion();
+        s.id = id;
+        s.usuario = usuario;
+        s.persona = persona;
+        s.expiresAt = expiresAt;
+        return s;
     }
 }

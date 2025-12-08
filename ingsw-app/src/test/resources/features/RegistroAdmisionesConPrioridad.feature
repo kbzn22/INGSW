@@ -8,8 +8,8 @@ Feature: Registro de admisiones en urgencias
       |  cuil         | nombre | apellido  | matricula | email           |
       | 20-30574930-4 | Maria  | Del Valle | ABC123    | maria@gmail.com |
     And existe en el sistema el paciente:
-      | cuil           | nombre |
-      | 20-44477310-4  | Enzo   |
+      | cuil           | nombre | apellido | email                     | calle     | numero | localidad |
+      | 20-44477310-4  | Enzo   | Juarez   | e.gustavojuarez@gmail.com | Sarmiento | 813    | El Carmen |
 
   Scenario: Registro exitoso de admisión de un paciente existente
     When registro el ingreso del paciente con los siguientes datos:
@@ -74,7 +74,7 @@ Feature: Registro de admisiones en urgencias
     When registro el ingreso del paciente con los siguientes datos:
       | informe     | temperatura | frecuencia cardiaca | frecuencia respiratoria | frecuencia sistolica          | frecuencia diastolica          | nivel  |
       | Mareo leve  | 37.0        | 88                  | 17                      | <frecuencia sistolica>        | <frecuencia diastolica>        | 2      |
-    Then el sistema muestra un mensaje de error "El campo 'tensionArterial' es inválido: debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milimetros de mercurio)"
+    Then el sistema muestra un mensaje de error "El campo 'tensionArterial' es inválido: debe tener valores positivos válidos para las frecuencias sistólica y diastólica (milímetros de mercurio)"
 
     Examples:
       | frecuencia sistolica | frecuencia diastolica |
@@ -109,13 +109,13 @@ Feature: Registro de admisiones en urgencias
 
    Scenario Outline: Reordenamiento de la cola según el nivel de prioridad del nuevo ingreso
     Given que existen los siguientes ingresos en la cola de atención:
-      | cuil          | nombre          | nivel | hora de ingreso |
-      | 20-44555000-4 | Laura Medina    | 2     | 09:00           |
-      | 20-44666000-4 | Pablo Fernández | 4     | 09:05           |
-      | 20-44777000-4 | Luis Gómez      | 4     | 09:10           |
+      | cuil          | nombre | apellido  | nivel | hora de ingreso |
+      | 20-44555000-4 | Laura  | Martinez  | 2     | 09:00           |
+      | 20-44666000-4 | Pablo  | Fernandez | 4     | 09:05           |
+      | 20-44777000-4 | Luis   | Gomez     | 4     | 09:10           |
     When ingresa a la cola el paciente con los siguientes datos:
-      | cuil          | nombre      | nivel   | hora de ingreso |
-      | 20-44477310-4 | Enzo Juarez | <nivel> | 09:15           |
+      | cuil          | nombre | apellido | nivel   | hora de ingreso |
+      | 20-44477310-4 | Enzo   | Juarez   | <nivel> | 09:15           |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
 
     Examples:
@@ -126,17 +126,17 @@ Feature: Registro de admisiones en urgencias
 
   Scenario Outline: Desempate en la cola de atención entre pacientes con el mismo nivel de prioridad
     Given que existen los siguientes ingresos en la cola de atención:
-      | cuil           | nombre          | nivel | hora de ingreso |
-      | 20-44555000-4  | Laura Medina    | 2     | 09:00           |
-      | 20-44666000-4  | Pablo Fernández | 3     | 09:05           |
-      | 20-44777000-4  | Luis Gómez      | 3     | 09:10           |
+      | cuil          | nombre | apellido  | nivel | hora de ingreso |
+      | 20-44555000-4 | Laura  | Martinez  | 2     | 09:00           |
+      | 20-44666000-4 | Pablo  | Fernandez | 4     | 09:05           |
+      | 20-44777000-4 | Luis   | Gomez     | 4     | 09:10           |
     When ingresa a la cola el paciente con los siguientes datos:
-      | cuil          | nombre      | informe        | nivel | hora de ingreso |
-      | 20-44477310-4 | Enzo Juarez | Dolor torácico | 3     | <hora>          |
+      | cuil          | nombre | apellido | nivel | hora de ingreso |
+      | 20-44477310-4 | Enzo   | Juarez   | <nivel>     | <hora>          |
     Then el nuevo ingreso se ubica en la posición <posicion> de la cola de atención
 
     Examples:
-      | hora   | posicion |
-      | 09:04  | 2        |
-      | 09:07  | 3        |
-      | 09:12  | 4        |
+      | nivel | hora  | posicion |
+      | 2     | 09:12 | 2        |
+      | 4     | 09:04 | 2        |
+      | 4     | 09:07 | 3        |

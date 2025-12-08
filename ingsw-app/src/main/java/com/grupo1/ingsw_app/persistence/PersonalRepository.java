@@ -2,80 +2,215 @@
 package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.*;
-import org.springframework.stereotype.Component;
+import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Repositorio unificado para todo el personal de salud (Doctores, Enfermeras, etc.).
- * Permite buscar por username, matrícula o CUIL sin duplicar código.
- */
-@Component
-public class PersonalRepository {
+@Repository
+public class PersonalRepository implements IPersonalRepository {
 
-    // índices en memoria
-    private final Map<String, Persona> byUsername = new ConcurrentHashMap<>();
-    private final Map<String, Persona> byMatricula = new ConcurrentHashMap<>();
-    private final Map<String, Persona> byCuil = new ConcurrentHashMap<>();
+    private final JdbcTemplate jdbc;
 
-    /** Guarda o actualiza cualquier persona (Doctor o Enfermera). */
+    public PersonalRepository(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    // =======================
+    // SQL
+    // =======================
+
+    private static final String SQL_UPSERT_PERSONAL = """
+        INSERT INTO personal (
+            cuil, nombre, apellido, email, matricula, tipo
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT (cuil) DO UPDATE SET
+            nombre   = EXCLUDED.nombre,
+            apellido = EXCLUDED.apellido,
+            email    = EXCLUDED.email,
+            matricula= EXCLUDED.matricula,
+            tipo     = EXCLUDED.tipo
+        """;
+
+    private static final String SQL_UPSERT_USUARIO = """
+        INSERT INTO usuario_personal (username, password_hash, cuil_personal)
+        VALUES (?, ?, ?)
+        ON CONFLICT (username) DO UPDATE SET
+            password_hash = EXCLUDED.password_hash,
+            cuil_personal = EXCLUDED.cuil_personal
+        """;
+
+    private static final String SQL_CLEAR_USUARIOS = "TRUNCATE TABLE usuario_personal";
+    private static final String SQL_CLEAR_PERSONAL = "TRUNCATE TABLE personal";
+
+    private static final String SQL_FIND_BY_USERNAME = """
+        SELECT
+          p.cuil, p.nombre, p.apellido, p.email, p.matricula, p.tipo,
+          u.username, u.password_hash
+        FROM personal p
+        JOIN usuario_personal u ON u.cuil_personal = p.cuil
+        WHERE u.username = ?
+        """;
+
+    private static final String SQL_FIND_BY_CUIL = """
+        SELECT
+          p.cuil, p.nombre, p.apellido, p.email, p.matricula, p.tipo,
+          u.username, u.password_hash
+        FROM personal p
+        LEFT JOIN usuario_personal u ON u.cuil_personal = p.cuil
+        WHERE p.cuil = ?
+        """;
+
+    private static final String SQL_FIND_BY_MATRICULA = """
+        SELECT
+          p.cuil, p.nombre, p.apellido, p.email, p.matricula, p.tipo,
+          u.username, u.password_hash
+        FROM personal p
+        LEFT JOIN usuario_personal u ON u.cuil_personal = p.cuil
+        WHERE p.matricula = ?
+        """;
+
+    private static final String SQL_FIND_ALL_DOCTORES = """
+        SELECT
+          p.cuil, p.nombre, p.apellido, p.email, p.matricula, p.tipo,
+          u.username, u.password_hash
+        FROM personal p
+        LEFT JOIN usuario_personal u ON u.cuil_personal = p.cuil
+        WHERE p.tipo = 'DOCTOR'
+        """;
+
+    private static final String SQL_FIND_ALL_ENFERMERAS = """
+        SELECT
+          p.cuil, p.nombre, p.apellido, p.email, p.matricula, p.tipo,
+          u.username, u.password_hash
+        FROM personal p
+        LEFT JOIN usuario_personal u ON u.cuil_personal = p.cuil
+        WHERE p.tipo = 'ENFERMERA'
+        """;
+
+    // =======================
+    // MAPPER: fila -> Persona (Doctor/Enfermera)
+    // =======================
+
+    private final RowMapper<Persona> mapperPersona = (rs, rowNum) -> {
+        String cuil       = rs.getString("cuil");
+        String nombre     = rs.getString("nombre");
+        String apellido   = rs.getString("apellido");
+        String email      = rs.getString("email");
+        String matricula  = rs.getString("matricula");
+        String tipo       = rs.getString("tipo");
+
+        String username   = rs.getString("username");
+        String password   = rs.getString("password_hash");
+
+        Usuario usuario = null;
+        if (username != null && password != null) {
+            usuario = new Usuario(username, password);
+        }
+
+        if ("ENFERMERA".equalsIgnoreCase(tipo)) {
+            // Constructor: Enfermera(String cuil, String nombre, String apellido, String matricula, String email, Usuario usuario)
+            return new Enfermera(cuil, nombre, apellido, matricula, email, usuario);
+        } else if ("DOCTOR".equalsIgnoreCase(tipo)) {
+            // Constructor: Doctor(String nombre, String apellido, String cuil, String email, String matricula, Usuario usuario)
+            return new Doctor(nombre, apellido, cuil, email, matricula, usuario);
+        } else {
+            throw new IllegalStateException("Tipo de personal desconocido en DB: " + tipo);
+        }
+    };
+
+    // =======================
+    // Implementación IPersonalRepository
+    // =======================
+
+    @Override
     public void save(Persona persona) {
-        if (persona instanceof Enfermera enfermera && enfermera.getUsuario() != null) {
-            byUsername.put(enfermera.getUsuario().getUsuario(), enfermera);
-        } else if (persona instanceof Doctor doctor && doctor.getUsuario() != null) {
-            byUsername.put(doctor.getUsuario().getUsuario(), doctor);
+        String tipo;
+        String matricula = null;
+        Usuario usuario = null;
+
+        if (persona instanceof Enfermera e) {
+            tipo = "ENFERMERA";
+            matricula = e.getMatricula();
+            usuario = e.getUsuario();
+        } else if (persona instanceof Doctor d) {
+            tipo = "DOCTOR";
+            matricula = d.getMatricula();
+            usuario = d.getUsuario();
+        } else {
+            throw new IllegalArgumentException("Solo se admite Doctor o Enfermera en PersonalRepository");
         }
 
-        if (persona instanceof Enfermera e && e.getMatricula() != null) {
-            byMatricula.put(e.getMatricula(), e);
-        } else if (persona instanceof Doctor d && d.getMatricula() != null) {
-            byMatricula.put(d.getMatricula(), d);
-        }
+        String cuil = persona.getCuil().getValor();
 
-        if (persona.getCuil() != null) {
-            byCuil.put(persona.getCuil().getValor(), persona);
+        // 1) upsert en personal
+        jdbc.update(SQL_UPSERT_PERSONAL,
+                cuil,
+                persona.getNombre(),
+                persona.getApellido(),
+                persona.getEmail(),
+                matricula,
+                tipo
+        );
+
+        // 2) upsert en usuario_personal (si tiene cuenta)
+        if (usuario != null) {
+            jdbc.update(SQL_UPSERT_USUARIO,
+                    usuario.getUsuario(),
+                    usuario.getPassword(),  // acá debería venir el hash de BCrypt
+                    cuil
+            );
         }
     }
 
-    public void clear() {
-        byUsername.clear();
-        byMatricula.clear();
-        byCuil.clear();
-    }
-
-
+    @Override
     public Optional<Persona> findByUsername(String username) {
-        return Optional.ofNullable(byUsername.get(username));
+        List<Persona> lista = jdbc.query(SQL_FIND_BY_USERNAME, mapperPersona, username);
+        if (lista.isEmpty()) return Optional.empty();
+        return Optional.of(lista.get(0));
     }
 
+    @Override
     public Optional<Persona> findByMatricula(String matricula) {
-        return Optional.ofNullable(byMatricula.get(matricula));
+        List<Persona> lista = jdbc.query(SQL_FIND_BY_MATRICULA, mapperPersona, matricula);
+        if (lista.isEmpty()) return Optional.empty();
+        return Optional.of(lista.get(0));
     }
 
+    @Override
     public Optional<Persona> findByCuil(String cuil) {
-        return Optional.ofNullable(byCuil.get(cuil));
+        List<Persona> lista = jdbc.query(SQL_FIND_BY_CUIL, mapperPersona, cuil);
+        if (lista.isEmpty()) return Optional.empty();
+        return Optional.of(lista.get(0));
     }
 
+    @Override
     public Optional<Doctor> findDoctorByUsername(String username) {
-        Persona p = byUsername.get(username);
-        return (p instanceof Doctor d) ? Optional.of(d) : Optional.empty();
+        return findByUsername(username)
+                .filter(Doctor.class::isInstance)
+                .map(Doctor.class::cast);
     }
 
+    @Override
     public Optional<Enfermera> findEnfermeraByUsername(String username) {
-        Persona p = byUsername.get(username);
-        return (p instanceof Enfermera e) ? Optional.of(e) : Optional.empty();
+        return findByUsername(username)
+                .filter(Enfermera.class::isInstance)
+                .map(Enfermera.class::cast);
     }
 
+    @Override
     public List<Doctor> findAllDoctors() {
-        return byUsername.values().stream()
+        return jdbc.query(SQL_FIND_ALL_DOCTORES, mapperPersona).stream()
                 .filter(Doctor.class::isInstance)
                 .map(Doctor.class::cast)
                 .toList();
     }
 
+    @Override
     public List<Enfermera> findAllEnfermeras() {
-        return byUsername.values().stream()
+        return jdbc.query(SQL_FIND_ALL_ENFERMERAS, mapperPersona).stream()
                 .filter(Enfermera.class::isInstance)
                 .map(Enfermera.class::cast)
                 .toList();

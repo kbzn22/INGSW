@@ -63,6 +63,5 @@ public class PacienteController {
 
         var paciente = service.registrarPaciente(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(paciente);
-
     }
 }
