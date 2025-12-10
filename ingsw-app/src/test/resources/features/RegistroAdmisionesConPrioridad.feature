@@ -19,7 +19,6 @@ Feature: Registro de admisiones en urgencias
     And el estado inicial del ingreso es "PENDIENTE"
     And el paciente entra en la cola de atención
 
-
   Rule: Escenarios negativos (campos invalidos)
 
   Scenario Outline: Registro fallido porque el informe es nulo o está vacío

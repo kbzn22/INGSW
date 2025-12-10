@@ -13,12 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.grupo1.ingsw_app.controller.helpers.RequestParser.asString;
+
 @RestController
 @RequestMapping("/api/medico")
 public class AtencionController {
 
     private final AtencionService service;
-
 
     public AtencionController(AtencionService service) {
         this.service = service;
@@ -31,11 +32,9 @@ public class AtencionController {
     }
 
     @PostMapping("/{ingresoId}/finalizar")
-    public ResponseEntity<PacienteEnAtencionDTO> finalizar(
-            @PathVariable UUID ingresoId,
-            @RequestBody Map<String, String> body) {
+    public ResponseEntity<PacienteEnAtencionDTO> finalizar(@PathVariable UUID ingresoId, @RequestBody Map<String, String> body) {
 
-        String informe = body.get("informe");
+        String informe = asString(body.get("informe"), "informe", "no puede estar vacio o contener solo espacios.");
         var dto = service.finalizarAtencion(ingresoId, informe);
         return ResponseEntity.ok(dto);
     }

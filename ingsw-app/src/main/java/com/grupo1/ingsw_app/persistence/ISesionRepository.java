@@ -7,9 +7,10 @@ import java.util.Optional;
 
 public interface ISesionRepository {
     public void save(Sesion s);
+
     public Optional<Sesion> find(String id);
-   ;
 
     void delete(String id);
+
     void deleteByPersona(String cuilPersona);
 }

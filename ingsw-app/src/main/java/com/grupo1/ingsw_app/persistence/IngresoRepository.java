@@ -435,19 +435,6 @@ public class IngresoRepository implements IIngresoRepository {
     }
 
     @Override
-    public boolean existsById(String id) {
-        UUID uuid = UUID.fromString(id);
-        return Boolean.TRUE.equals(
-                jdbc.queryForObject(SQL_EXISTS, Boolean.class, uuid)
-        );
-    }
-
-    @Override
-    public void clear() {
-        jdbc.execute(SQL_TRUNCATE);
-    }
-
-    @Override
     public Optional<Ingreso> findById(UUID id) {
         List<Ingreso> resultados = jdbc.query(SQL_FIND_BY_ID, mapper(), id);
         return resultados.stream().findFirst();
@@ -457,12 +444,7 @@ public class IngresoRepository implements IIngresoRepository {
     public List<Ingreso> findByEstado(EstadoIngreso estado) {
         return jdbc.query(SQL_FIND_BY_ESTADO, mapper(), estado.name());
     }
-    /*
-    @Override
-    public Optional<Ingreso> findFirstEnProceso() {
-        List<Ingreso> resultados = jdbc.query(SQL_FIND_EN_PROCESO_FIRST, mapper());
-        return resultados.stream().findFirst();
-    }*/
+
     @Override
     public int countByEstado(EstadoIngreso estado) {
         return jdbc.queryForObject(SQL_COUNT_BY_ESTADO, Integer.class, estado.name());
@@ -474,7 +456,6 @@ public class IngresoRepository implements IIngresoRepository {
                 .stream()
                 .findFirst();
     }
-
 
     @Override
     public List<Ingreso> findDetallesParaExport(
