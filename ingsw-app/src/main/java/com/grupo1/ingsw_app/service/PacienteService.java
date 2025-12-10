@@ -4,6 +4,7 @@ import com.grupo1.ingsw_app.domain.ObraSocial;
 import com.grupo1.ingsw_app.domain.Paciente;
 import com.grupo1.ingsw_app.dtos.PacienteRequest;
 import com.grupo1.ingsw_app.exception.AfiliacionInvalidaException;
+import com.grupo1.ingsw_app.exception.AfiliadoUtilizadoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.external.IObraSocialClient;
 import org.springframework.stereotype.Service;
@@ -75,6 +76,14 @@ public class PacienteService {
         if (!estaAfiliado) {
             throw new AfiliacionInvalidaException(idObraSocial, numeroAfiliado);
         }
+
+
+        //Caso 5: obra social y afiliado existen, pero el afiliado ya lo tiene otra persona → rechazado
+        boolean yaEstaRegistrado = repo.existsByObraSocialAndNumero(idObraSocial, numeroAfiliado);
+        if (yaEstaRegistrado) {
+            throw new AfiliadoUtilizadoException(numeroAfiliado);
+        }
+
 
         // Caso 1: con obra social → permitido
         return obraSocial;

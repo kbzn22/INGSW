@@ -42,6 +42,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    @ExceptionHandler(AfiliadoUtilizadoException.class)
+    public ResponseEntity<ApiError> handleAfiliadoDuplicado(
+            AfiliadoUtilizadoException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                ex.getMessage(),
+                request,
+                "AFILIADO_UTILIZADO"
+        );
+    }
+
     @ExceptionHandler(PacienteRedundanteEnColaException.class)
     public ResponseEntity<ApiError> handlePacienteRedundanteEnCola(
             PacienteRedundanteEnColaException ex,

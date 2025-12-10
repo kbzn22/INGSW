@@ -68,6 +68,15 @@ public class PacienteRepository implements IPacienteRepository {
 
     private static final String SQL_CLEAR = "TRUNCATE TABLE paciente RESTART IDENTITY CASCADE";
 
+    // PacienteRepository.java
+
+    // ... otros SQLs ...
+    private static final String SQL_EXISTS_AFILIADO = """
+    SELECT COUNT(*) 
+    FROM paciente 
+    WHERE obra_social_id = ? AND numero_afiliado = ?
+    """;
+
     // --------- Mappers
 
     private final RowMapper<Paciente> mapper = (rs, rowNum) -> {
@@ -122,6 +131,19 @@ public class PacienteRepository implements IPacienteRepository {
     }
 
     @Override
+    public boolean existsByObraSocialAndNumero(UUID idObraSocial, String numeroAfiliado) {
+        if (idObraSocial == null || numeroAfiliado == null) return false;
+
+        Integer count = jdbc.queryForObject(
+                SQL_EXISTS_AFILIADO,
+                Integer.class,
+                idObraSocial,
+                numeroAfiliado
+        );
+        return count != null && count > 0;
+    }
+
+    @Override
     public void save(Paciente paciente) {
         // persistimos obra social si existe
         UUID obraId = null;
@@ -130,11 +152,12 @@ public class PacienteRepository implements IPacienteRepository {
         if (paciente.getAfiliado() != null) {
             ObraSocial obra = paciente.getAfiliado().getObraSocial();
             if (obra != null) {
+                obraId = obra.getId();
 
                 if (obraId == null) {
                     obraId = UUID.randomUUID();
                 }
-                // upsert de obra_social
+
                 jdbc.update(SQL_UPSERT_OBRA_SOCIAL, obraId, obra.getNombre());
             }
             numeroAfiliado = paciente.getAfiliado().getNumeroAfiliado();
