@@ -74,7 +74,7 @@ public class PacienteService {
         //Caso 4: obra social existe pero no tiene un afiliado con ese numero → rechazado
         boolean estaAfiliado = obraSocialClient.estaAfiliado(idObraSocial, numeroAfiliado);
         if (!estaAfiliado) {
-            throw new AfiliacionInvalidaException(idObraSocial, numeroAfiliado);
+            throw new AfiliacionInvalidaException(obraSocial.getNombre(), numeroAfiliado);
         }
 
 

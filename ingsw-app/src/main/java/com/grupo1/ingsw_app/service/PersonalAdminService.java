@@ -78,7 +78,6 @@ public class PersonalAdminService {
                 usernameFinal
         );
     }
-
     private String generarUsernameBase(String nombre, String apellido) {
         String nom = nombre == null ? "" : nombre.trim().toLowerCase();
         String ape = apellido == null ? "" : apellido.trim().toLowerCase();
@@ -95,7 +94,7 @@ public class PersonalAdminService {
         String candidate = base;
         int i = 1;
 
-        // ya usás personalRepo.findByUsername en AutenticacionService
+
         while (personalRepo.findByUsername(candidate).isPresent()) {
             candidate = base + i;
             i++;
