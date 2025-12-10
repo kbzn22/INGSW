@@ -5,6 +5,7 @@ import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.dtos.AtencionLogDTO;
 import com.grupo1.ingsw_app.dtos.AtencionResumenDTO;
 import com.grupo1.ingsw_app.dtos.PacienteEnAtencionDTO;
+import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.DoctorYaTienePacienteEnAtencionException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistence.IAtencionRepository;
@@ -23,34 +24,32 @@ public class AtencionService {
     private final IAtencionRepository atencionRepo;
     private final Sesion sesionActual;
 
-    public AtencionService(IIngresoRepository ingresoRepo,
-                           IAtencionRepository atencionRepo,
-                           Sesion sesionActual) {
+    public AtencionService(IIngresoRepository ingresoRepo, IAtencionRepository atencionRepo, Sesion sesionActual) {
         this.ingresoRepo = ingresoRepo;
         this.atencionRepo = atencionRepo;
         this.sesionActual = sesionActual;
     }
+
     private Doctor obtenerDoctorDeSesion() {
         // misma idea que sesionActual.getEnfermera() en IngresoService
-        return sesionActual.getDoctor(); // lanza SecurityException si no es doctor
+        return sesionActual.getDoctor();
     }
+
     public PacienteEnAtencionDTO iniciarAtencion(UUID ingresoId) {
 
         Doctor doctor = obtenerDoctorDeSesion();
 
         if(!ingresoRepo.findEnAtencionActual(doctor.getCuil().getValor()).isEmpty()){
-            throw new DoctorYaTienePacienteEnAtencionException("El doctor ya tiene un paciente en atencion ");
+            throw new DoctorYaTienePacienteEnAtencionException();
         }
 
         Ingreso ingreso = ingresoRepo.findById(ingresoId)
-                .orElseThrow(() ->
-                        new EntidadNoEncontradaException("ingreso", ingresoId.toString()));
+                .orElseThrow(() -> new EntidadNoEncontradaException("ingreso", ingresoId.toString()));
 
         ingreso.setEstadoIngreso(EstadoIngreso.EN_PROCESO);
         ingresoRepo.save(ingreso);
 
         Atencion atencion = new Atencion(doctor, ingreso);
-        atencion.setFechaAtencion(LocalDateTime.now());
         atencionRepo.save(atencion);
 
         return PacienteEnAtencionDTO.from(ingreso);
@@ -59,19 +58,17 @@ public class AtencionService {
     public PacienteEnAtencionDTO finalizarAtencion(UUID ingresoId, String informe) {
 
         if (informe == null || informe.trim().isEmpty()) {
-            throw new IllegalArgumentException("El informe de la atención no puede estar vacío.");
+            throw new CampoInvalidoException("informe", "no puede estar vacío ni contener solo espacios.");
         }
 
         Ingreso ingreso = ingresoRepo.findById(ingresoId)
-                .orElseThrow(() ->
-                        new EntidadNoEncontradaException("ingreso", ingresoId.toString()));
+                .orElseThrow(() -> new EntidadNoEncontradaException("ingreso", ingresoId.toString()));
 
         ingreso.setEstadoIngreso(EstadoIngreso.FINALIZADO);
         ingresoRepo.save(ingreso);
 
         Atencion atencion = atencionRepo.findByIngresoId(ingresoId)
-                .orElseThrow(() ->
-                        new EntidadNoEncontradaException("atencion", "ingresoId=" + ingresoId));
+                .orElseThrow(() -> new EntidadNoEncontradaException("atencion", "ingresoId=" + ingresoId));
 
         atencion.setDoctor(obtenerDoctorDeSesion());
         atencion.setInforme(informe);

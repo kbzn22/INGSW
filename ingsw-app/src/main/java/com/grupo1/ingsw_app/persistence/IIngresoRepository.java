@@ -15,10 +15,6 @@ public interface IIngresoRepository {
 
     void save(Ingreso ingreso);
 
-    boolean existsById(String id);
-
-    void clear();
-
     Optional<Ingreso> findById(UUID id);
 
     List<Ingreso> findByEstado(EstadoIngreso estado);
