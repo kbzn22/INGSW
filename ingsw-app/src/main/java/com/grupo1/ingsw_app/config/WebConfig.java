@@ -15,7 +15,7 @@ public class WebConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(
-                                "https://ingsw-front.up.railway.app", // FRONT PROD
+                                "https://ingswfront-production.up.railway.app", // FRONT PROD
                                 "http://localhost:3000"              // FRONT DEV
                         )
                         .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
