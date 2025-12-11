@@ -1,6 +1,6 @@
 package com.grupo1.ingsw_app.domain;
 
-import com.grupo1.ingsw_app.domain.valueobjects.Cuil;
+
 
 public class Enfermera extends Persona{
     String matricula;

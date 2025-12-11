@@ -1,7 +1,5 @@
 package com.grupo1.ingsw_app.dtos;
 
-import java.util.UUID;
-
 public class IngresoRequest {
 
     private String cuilPaciente;
@@ -36,10 +34,6 @@ public class IngresoRequest {
     }
 
 
-
-    public IngresoRequest(String cuilPaciente, String informe, Float temperatura, Double frecuenciaCardiaca, Double frecuenciaRespiratoria, Double frecuenciaSistolica, Double frecuenciaDiastolica, Integer nivel, UUID idObraSocial, String numeroAfiliado) {
-    }
-
     public String getCuilPaciente() { return cuilPaciente; }
     public String getInforme() { return informe; }
     public Double getTemperatura() { return temperatura; }
@@ -52,9 +46,6 @@ public class IngresoRequest {
     public void setCuilPaciente(String cuilPaciente) { this.cuilPaciente = cuilPaciente; }
     public void setInforme(String informe) { this.informe = informe; }
     public void setTemperatura(Double temperatura) { this.temperatura = temperatura; }
-    public void setFrecuenciaCardiaca(Double frecuenciaCardiaca) { this.frecuenciaCardiaca = frecuenciaCardiaca; }
-    public void setFrecuenciaRespiratoria(Double frecuenciaRespiratoria) { this.frecuenciaRespiratoria = frecuenciaRespiratoria; }
-    public void setFrecuenciaSistolica(Double frecuenciaSistolica) { this.frecuenciaSistolica = frecuenciaSistolica; }
-    public void setFrecuenciaDiastolica(Double frecuenciaDiastolica) { this.frecuenciaDiastolica = frecuenciaDiastolica; }
+
     public void setNivel(Integer nivel) { this.nivel = nivel; }
 }

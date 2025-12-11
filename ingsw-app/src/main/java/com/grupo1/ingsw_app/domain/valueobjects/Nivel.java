@@ -4,8 +4,8 @@ import java.time.Duration;
 import java.util.Objects;
 
 public class Nivel {
-    private final int nivel;                 // 1..5
-    private final String nombre;             // Rojo, Naranja, etc.
+    private final int nivel;
+    private final String nombre;
     private final Duration duracionMaxEspera;
 
     public Nivel(int nivel, String nombre, Duration duracionMaxEspera) {
@@ -22,9 +22,6 @@ public class Nivel {
         return nombre;
     }
 
-    public Duration getDuracionMaxEspera() {
-        return duracionMaxEspera;
-    }
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,4 +1,3 @@
-// src/main/java/com/grupo1/ingsw_app/controller/PersonalAdminController.java
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.dtos.PersonalRegistradoDTO;

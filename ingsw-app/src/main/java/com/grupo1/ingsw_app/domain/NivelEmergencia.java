@@ -27,10 +27,6 @@ public enum NivelEmergencia {
         return nivel.getNivel();
     }
 
-    public String getNombreEnum() {
-        return this.name();
-    }
-
     public static NivelEmergencia fromNumero(Integer numero) {
         if (numero == null) {
             throw new CampoInvalidoException(

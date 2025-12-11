@@ -1,4 +1,3 @@
-// src/main/java/com/grupo1/ingsw_app/persistence/IngresoRepository.java
 package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.*;
@@ -145,7 +144,7 @@ public class IngresoRepository implements IIngresoRepository {
           i.sistolica,
           i.diastolica,
 
-          -- datos del paciente (necesarios para el mapper)
+          
           p.cuil      AS paciente_cuil,
           p.nombre    AS paciente_nombre,
           p.apellido  AS paciente_apellido,
@@ -154,7 +153,7 @@ public class IngresoRepository implements IIngresoRepository {
           p.numero    AS paciente_numero,
           p.localidad AS paciente_localidad,
 
-          -- datos de la atención (por si después querés usarlos)
+         
           a.cuil_doctor,
           a.informe,
           a.fecha_atencion
@@ -245,9 +244,10 @@ public class IngresoRepository implements IIngresoRepository {
     JOIN paciente p ON p.cuil = i.cuil_paciente
     WHERE 1=1
     """;
+    private static final String SQL_FIND_BY_NIVEL=
+            "SELECT COUNT(*) FROM ingreso WHERE nivel_emergencia = ?::nivel_emergencia AND estado_ingreso = 'PENDIENTE'";
 
 
-    // ---------- RowMapper: fila
 
     private RowMapper<Ingreso> mapper() {
         return (rs, rowNum) -> {
@@ -263,7 +263,7 @@ public class IngresoRepository implements IIngresoRepository {
             Timestamp ts = rs.getTimestamp("fecha_ingreso");
             LocalDateTime fecha = ts != null ? ts.toLocalDateTime() : null;
 
-            // NUMERIC → objetos
+
             Temperatura temp = rs.getBigDecimal("temperatura") != null
                     ? new Temperatura(rs.getBigDecimal("temperatura").doubleValue())
                     : null;
@@ -284,7 +284,7 @@ public class IngresoRepository implements IIngresoRepository {
                 );
             }
 
-            // =================== OBRA SOCIAL / AFILIADO ===================
+
             UUID obraSocialId = null;
             String obraSocialNombre = null;
             String numeroAfiliado = null;
@@ -292,7 +292,7 @@ public class IngresoRepository implements IIngresoRepository {
             try {
                 obraSocialId = rs.getObject("obra_social_id", UUID.class);
             } catch (Exception ignored) {
-                // por si alguna query vieja no trae la columna
+
             }
 
             try {
@@ -307,23 +307,23 @@ public class IngresoRepository implements IIngresoRepository {
 
             ObraSocial obraSocial = null;
             if (obraSocialId != null) {
-                // Ajustá el constructor según tu clase ObraSocial
+
                 obraSocial = new ObraSocial(obraSocialId, obraSocialNombre);
             }
 
             Paciente paciente = new Paciente(
-                    rs.getString("paciente_cuil"),        // cuil
-                    rs.getString("paciente_nombre"),      // nombre
-                    rs.getString("paciente_apellido"),    // apellido
-                    rs.getString("paciente_email"),       // email
-                    rs.getString("paciente_calle"),       // calle
-                    rs.getInt("paciente_numero"),         // número
-                    rs.getString("paciente_localidad"),   // localidad
-                    obraSocial,                           // null por ahora
-                    numeroAfiliado                        // null por ahora
+                    rs.getString("paciente_cuil"),
+                    rs.getString("paciente_nombre"),
+                    rs.getString("paciente_apellido"),
+                    rs.getString("paciente_email"),
+                    rs.getString("paciente_calle"),
+                    rs.getInt("paciente_numero"),
+                    rs.getString("paciente_localidad"),
+                    obraSocial,
+                    numeroAfiliado
             );
 
-            // Enfermera desde PersonalRepository
+
             Enfermera enfermera = null;
             if (cuilEnf != null) {
                 var personaOpt = personalRepository.findByCuil(cuilEnf);
@@ -346,7 +346,7 @@ public class IngresoRepository implements IIngresoRepository {
         };
     }
 
-    // ---------- Implementación de IIngresoRepository
+
 
     @Override
     public List<Ingreso> findForLog(LocalDateTime desde,
@@ -357,19 +357,19 @@ public class IngresoRepository implements IIngresoRepository {
         StringBuilder sql = new StringBuilder(SQL_FIND_LOG_BASE);
         List<Object> params = new ArrayList<>();
 
-        // Filtro por fecha DESDE (si vino)
+
         if (desde != null) {
             sql.append(" AND i.fecha_ingreso >= ? ");
             params.add(Timestamp.valueOf(desde));
         }
 
-        // Filtro por fecha HASTA (si vino)
+
         if (hasta != null) {
             sql.append(" AND i.fecha_ingreso <= ? ");
             params.add(Timestamp.valueOf(hasta));
         }
 
-        // Filtros por CUIL (PACIENTE / ENFERMERA) con OR entre ellos
+
         boolean tieneCuilPaciente = cuilPaciente != null && !cuilPaciente.isBlank();
         boolean tieneCuilEnfermera = cuilEnfermera != null && !cuilEnfermera.isBlank();
 
@@ -397,7 +397,7 @@ public class IngresoRepository implements IIngresoRepository {
 
         sql.append(" ORDER BY i.fecha_ingreso ASC ");
 
-        System.out.println(sql.toString());
+
         return jdbc.query(sql.toString(), mapper(), params.toArray());
     }
     @Override
@@ -508,13 +508,7 @@ public class IngresoRepository implements IIngresoRepository {
 
         sql.append(" ORDER BY i.fecha_ingreso ASC");
 
-        System.out.println("=== SQL FINAL EJECUTADO ===");
-        System.out.println(sql.toString());
-        System.out.println("=== PARAMS ===");
-        for (Object p : params) {
-            System.out.println(" - " + p);
-        }
-        System.out.println("============================");
+
 
         return jdbc.query(sql.toString(), (rs, rowNum) -> {
             UUID idIngreso = rs.getObject("id_ingreso", java.util.UUID.class);
@@ -541,15 +535,13 @@ public class IngresoRepository implements IIngresoRepository {
             Double sist    = rs.getObject("sistolica") != null ? rs.getDouble("sistolica") : null;
             Double diast   = rs.getObject("diastolica") != null ? rs.getDouble("diastolica") : null;
 
-            // ---------- Domain objects ----------
 
-            // Valor númerico de nivel → Enum dominio
             NivelEmergencia nivelEmergencia = null;
             if (nivelNum != null) {
                 nivelEmergencia = com.grupo1.ingsw_app.domain.NivelEmergencia.fromNumero(nivelNum);
             }
 
-            // Temperatura / Frecuencias / TA como VOs
+
             Temperatura temperatura = temp != null ? new Temperatura(temp) : null;
             FrecuenciaCardiaca frecCard = fc != null ? new FrecuenciaCardiaca(fc) : null;
             FrecuenciaRespiratoria frecResp = fr != null ? new FrecuenciaRespiratoria(fr) : null;
@@ -559,33 +551,32 @@ public class IngresoRepository implements IIngresoRepository {
                 tensionArterial = new TensionArterial(sist, diast);
             }
 
-            // Obra social “liviana”: solo nombre, sin id (ajustá al ctor real)
+
             ObraSocial obraSocial = null;
             if (obraSoc != null) {
-                // si tu ObraSocial tiene ctor (Long id, String nombre):
                 obraSocial = new ObraSocial(null, obraSoc);
             }
 
-            // Paciente “para export”: usamos los datos que trae la consulta
-            // Ajustado a tu ctor:
-            // Paciente(String cuil, String nombre, String apellido, String email,
-            //          String calle, Integer numero, String localidad,
-            //          ObraSocial obraSocial, String numeroAfiliado)
             Paciente paciente = new Paciente(
                     cuilPac,
                     nomPac,
                     apePac,
-                    null,        // email no viene en esta consulta
-                    null,        // calle
-                    1,           // número “dummy” válido si tu dominio no acepta null/0
-                    null,        // localidad
+                    null,
+                    null,
+                    1,
+                    null,
                     obraSocial,
                     nroAfi
             );
 
-            // Enfermera: podés dejarla null si no la necesitás en el dominio del Ingreso exportado
+
             Enfermera enfermera = null;
-            // Si quisieras, podrías armar una Enfermera “liviana” con cuil/nom/ape.
+            if (cuilEnf != null) {
+                var personaOpt = personalRepository.findByCuil(cuilEnfermera);
+                if (personaOpt.isPresent() && personaOpt.get() instanceof Enfermera e) {
+                    enfermera = e;
+                }
+            }
 
             Ingreso ingreso = new Ingreso(paciente, enfermera, nivelEmergencia);
             ingreso.setId(idIngreso);
@@ -597,10 +588,8 @@ public class IngresoRepository implements IIngresoRepository {
             ingreso.setFrecuenciaRespiratoria(frecResp);
             ingreso.setTensionArterial(tensionArterial);
 
-
             return ingreso;
         }, params.toArray());
     }
-
 
 }

@@ -16,12 +16,9 @@ public class ColaAtencion {
         ordenar();
     }
 
-    public boolean estaElPaciente(String cuil) {
-        return ingresosEnCola.stream()
-                .anyMatch(item -> item.getCuil().equals(cuil));
-    }
 
-    /** Retorna posición 1-based; -1 si no está. */
+
+
     public int posicionDe(String cuilPaciente) {
         int idx = IntStream.range(0, ingresosEnCola.size())
                 .filter(i -> ingresosEnCola.get(i).getCuil().equals(cuilPaciente))

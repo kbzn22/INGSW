@@ -9,7 +9,7 @@ import java.util.*;
 @Component
 public class ObraSocialClient implements IObraSocialClient {
 
-    // ==== Datos mockeados ====
+
     private static final UUID OSDE_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID PAMI_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
     private static final UUID SWISS_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
@@ -22,7 +22,7 @@ public class ObraSocialClient implements IObraSocialClient {
             new ObraSocialDto(SS_ID, "SUBSIDIO DE SALUD")
     );
 
-    // padrón de afiliados simulados
+
     private final Map<UUID, Set<String>> padronAfiliados = Map.of(
             OSDE_ID, Set.of("OSDE-100", "OSDE-200","OSDE-300"),
             PAMI_ID, Set.of("PAMI-400", "PAMI-500", "PAMI-600"),

@@ -1,4 +1,4 @@
-// src/main/java/com/grupo1/ingsw_app/persistence/SesionRepository.java
+
 package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.Doctor;
@@ -83,7 +83,7 @@ public class SesionRepository implements ISesionRepository {
 
         Sesion s = list.get(0);
         if (s.isExpired()) {
-            delete(id);              // igual que antes: caducada → la volás
+            delete(id);
             return Optional.empty();
         }
 

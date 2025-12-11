@@ -40,11 +40,11 @@ public class AutenticacionController {
                 .maxAge(Duration.ofHours(8));
 
         if (isLocalhost) {
-            // Dev local: http://localhost:8080
+            // http://localhost:8080
             builder.secure(false)
                     .sameSite("Lax");
         } else {
-            // Prod: Railway (HTTPS, front en otro dominio)
+            // Prod: Railway https
             builder.secure(true)
                     .sameSite("None");
         }
@@ -56,7 +56,7 @@ public class AutenticacionController {
                 .build();
     }
 
-    // acepta form-url-encoded: username=..&password=..
+
     @PostMapping(path = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Void> loginForm(
             @RequestParam String username,
@@ -66,7 +66,7 @@ public class AutenticacionController {
         return loginJson(new LoginReq(username, password), request);
     }
 
-    // ---------- LOGOUT ----------
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(value = "SESSION_ID", required = false) String sid,
@@ -97,7 +97,7 @@ public class AutenticacionController {
                 .build();
     }
 
-    // ---------- ME ----------
+
     @GetMapping("/me")
     public ResponseEntity<?> me(
             @CookieValue(name = "SESSION_ID", required = false) String sid) {
@@ -144,7 +144,7 @@ public class AutenticacionController {
         }
     }
 
-    // ---------- VERIFICAR ----------
+
     @GetMapping("/verificar")
     public ResponseEntity<Void> verificar(
             @CookieValue(name = "SESSION_ID", required = false) String sid) {

@@ -1,4 +1,3 @@
-// src/main/java/com/grupo1/ingsw_app/dtos/PacienteEnAtencionDTO.java
 package com.grupo1.ingsw_app.dtos;
 
 import com.grupo1.ingsw_app.domain.Ingreso;
@@ -36,11 +35,9 @@ public class PacienteEnAtencionDTO {
         this.informe = informe;
     }
 
-    // Getters (no hace falta setters para el JSON de salida)
 
-    public UUID getIdIngreso() {
-        return idIngreso;
-    }
+
+
 
     public String getNombre() {
         return nombre;
@@ -58,19 +55,15 @@ public class PacienteEnAtencionDTO {
         return nivel;
     }
 
-    public String getEstado() {
-        return estado;
-    }
 
-    public LocalDateTime getFechaIngreso() {
-        return fechaIngreso;
-    }
+
+
 
     public String getInforme() {
         return informe;
     }
 
-    // ====== Factory estático que usa Ingreso del dominio ======
+
 
     public static PacienteEnAtencionDTO from(Ingreso ingreso) {
         if (ingreso == null) return null;
@@ -98,7 +91,7 @@ public class PacienteEnAtencionDTO {
 
         LocalDateTime fecha = ingreso.getFechaIngreso();
 
-        String informe = ingreso.getDescripcion(); // usamos la descripción como informe base
+        String informe = ingreso.getDescripcion();
 
         return new PacienteEnAtencionDTO(
                 ingreso.getId(),

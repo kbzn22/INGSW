@@ -1,4 +1,4 @@
-// src/main/java/com/grupo1/ingsw_app/persistence/PersonalRepository.java
+
 package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.*;
@@ -18,9 +18,7 @@ public class PersonalRepository implements IPersonalRepository {
         this.jdbc = jdbc;
     }
 
-    // =======================
-    // SQL
-    // =======================
+
 
     private static final String SQL_UPSERT_PERSONAL = """
         INSERT INTO personal (
@@ -41,9 +39,6 @@ public class PersonalRepository implements IPersonalRepository {
             password_hash = EXCLUDED.password_hash,
             cuil_personal = EXCLUDED.cuil_personal
         """;
-
-    private static final String SQL_CLEAR_USUARIOS = "TRUNCATE TABLE usuario_personal";
-    private static final String SQL_CLEAR_PERSONAL = "TRUNCATE TABLE personal";
 
     private static final String SQL_FIND_BY_USERNAME = """
         SELECT
@@ -90,9 +85,6 @@ public class PersonalRepository implements IPersonalRepository {
         WHERE p.tipo = 'ENFERMERA'
         """;
 
-    // =======================
-    // MAPPER: fila -> Persona (Doctor/Enfermera)
-    // =======================
 
     private final RowMapper<Persona> mapperPersona = (rs, rowNum) -> {
         String cuil       = rs.getString("cuil");
@@ -111,19 +103,15 @@ public class PersonalRepository implements IPersonalRepository {
         }
 
         if ("ENFERMERA".equalsIgnoreCase(tipo)) {
-            // Constructor: Enfermera(String cuil, String nombre, String apellido, String matricula, String email, Usuario usuario)
             return new Enfermera(cuil, nombre, apellido, matricula, email, usuario);
         } else if ("DOCTOR".equalsIgnoreCase(tipo)) {
-            // Constructor: Doctor(String nombre, String apellido, String cuil, String email, String matricula, Usuario usuario)
             return new Doctor(nombre, apellido, cuil, email, matricula, usuario);
         } else {
             throw new IllegalStateException("Tipo de personal desconocido en DB: " + tipo);
         }
     };
 
-    // =======================
-    // Implementación IPersonalRepository
-    // =======================
+
 
     @Override
     public void save(Persona persona) {
@@ -145,7 +133,7 @@ public class PersonalRepository implements IPersonalRepository {
 
         String cuil = persona.getCuil().getValor();
 
-        // 1) upsert en personal
+
         jdbc.update(SQL_UPSERT_PERSONAL,
                 cuil,
                 persona.getNombre(),
@@ -155,11 +143,11 @@ public class PersonalRepository implements IPersonalRepository {
                 tipo
         );
 
-        // 2) upsert en usuario_personal (si tiene cuenta)
+
         if (usuario != null) {
             jdbc.update(SQL_UPSERT_USUARIO,
                     usuario.getUsuario(),
-                    usuario.getPassword(),  // acá debería venir el hash de BCrypt
+                    usuario.getPassword(),
                     cuil
             );
         }

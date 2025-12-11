@@ -1,4 +1,3 @@
-// src/main/java/com/grupo1/ingsw_app/dtos/PersonalRegistradoDTO.java
 package com.grupo1.ingsw_app.dtos;
 
 public class PersonalRegistradoDTO {
@@ -24,6 +23,5 @@ public class PersonalRegistradoDTO {
     public String getCuil()     { return cuil; }
     public String getNombre()   { return nombre; }
     public String getApellido() { return apellido; }
-    public String getRol()      { return rol; }
     public String getUsername() { return username; }
 }

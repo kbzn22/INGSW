@@ -17,7 +17,7 @@ public class PacienteRepository implements IPacienteRepository {
         this.jdbc = jdbc;
     }
 
-    // --------- SQLs
+
 
     private static final String SQL_FIND_BY_CUIL = """
         SELECT
@@ -43,11 +43,7 @@ public class PacienteRepository implements IPacienteRepository {
             nombre = EXCLUDED.nombre
         """;
 
-    private static final String SQL_FIND_OBRA_SOCIAL_BY_NAME = """
-        SELECT id, nombre
-        FROM obra_social
-        WHERE nombre = ?
-        """;
+
 
     private static final String SQL_UPSERT_PACIENTE = """
         INSERT INTO paciente (
@@ -66,18 +62,13 @@ public class PacienteRepository implements IPacienteRepository {
             numero_afiliado = EXCLUDED.numero_afiliado
         """;
 
-    private static final String SQL_CLEAR = "TRUNCATE TABLE paciente RESTART IDENTITY CASCADE";
-
-    // PacienteRepository.java
-
-    // ... otros SQLs ...
     private static final String SQL_EXISTS_AFILIADO = """
     SELECT COUNT(*) 
     FROM paciente 
     WHERE obra_social_id = ? AND numero_afiliado = ?
     """;
 
-    // --------- Mappers
+
 
     private final RowMapper<Paciente> mapper = (rs, rowNum) -> {
         String cuil = rs.getString("cuil");
@@ -92,8 +83,7 @@ public class PacienteRepository implements IPacienteRepository {
         String obraNombre = rs.getString("obra_social_nombre");
         String numeroAfiliado = rs.getString("numero_afiliado");
 
-        // --- CASO 1: Paciente minimalista (BDD) ---
-        // si no hay domicilio y no hay obra social → usar constructor simple
+
         boolean sinDomicilio = calle == null && numero == null && localidad == null;
         boolean sinObraSocial = obraId == null && numeroAfiliado == null;
 
@@ -101,7 +91,7 @@ public class PacienteRepository implements IPacienteRepository {
             return new Paciente(cuil, nombre);
         }
 
-        // --- CASO 2: Paciente completo ---
+
         ObraSocial obra = null;
         if (obraId != null && obraNombre != null) {
             obra = new ObraSocial(obraId, obraNombre);
@@ -121,7 +111,6 @@ public class PacienteRepository implements IPacienteRepository {
     };
 
 
-    // --------- Implementación de IPacienteRepository
 
     @Override
     public Optional<Paciente> findByCuil(String cuil) {
@@ -145,7 +134,7 @@ public class PacienteRepository implements IPacienteRepository {
 
     @Override
     public void save(Paciente paciente) {
-        // persistimos obra social si existe
+
         UUID obraId = null;
         String numeroAfiliado = null;
 
@@ -163,21 +152,21 @@ public class PacienteRepository implements IPacienteRepository {
             numeroAfiliado = paciente.getAfiliado().getNumeroAfiliado();
         }
 
-        Cuil cuil = paciente.getCuil(); // de Persona
+        Cuil cuil = paciente.getCuil();
         Domicilio dom = null;
         try {
             var field = Paciente.class.getDeclaredField("domicilio");
             field.setAccessible(true);
             dom = (Domicilio) field.get(paciente);
         } catch (Exception ignored) {
-            // si no querés usar reflection, podés agregar getters en Paciente
+
         }
 
         String calle = null;
         Integer numero = null;
         String localidad = null;
         if (dom != null) {
-            // asumiendo getters si los agregás en Domicilio, sino lo mismo que arriba
+
             try {
                 var fCalle = Domicilio.class.getDeclaredField("calle");
                 var fNumero = Domicilio.class.getDeclaredField("numero");
@@ -207,30 +196,3 @@ public class PacienteRepository implements IPacienteRepository {
 }
 
 
-
-
-/* Repositorio en memoria para gestionar pacientes.
- * Cumple la interfaz de persistencia mínima para los tests de BDD.
- */
-/*
-@Repository
-public class PacienteRepositoryInMemory implements IPacienteRepository {
-
-    private final Map<String, Paciente> data = new HashMap<>();
-
-    @Override
-    public Optional<Paciente> findByCuil(String cuil) {
-        return Optional.ofNullable(data.get(cuil));
-    }
-
-    @Override
-    public void save(Paciente paciente) {
-        data.put(paciente.getCuil().getValor(), paciente);
-    }
-
-
-    public void clear() {
-        data.clear();
-    }
-}
-*/

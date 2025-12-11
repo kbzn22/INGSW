@@ -9,7 +9,7 @@ public class Domicilio {
     private String localidad;
 
     public Domicilio(String calle, Integer numero, String localidad) {
-        // Validaciones básicas de integridad
+
         if (calle == null || calle.trim().isEmpty())
             throw new CampoInvalidoException("numero", "no puede estar vacía");
 

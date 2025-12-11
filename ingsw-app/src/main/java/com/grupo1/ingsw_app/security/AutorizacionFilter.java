@@ -1,4 +1,4 @@
-// src/main/java/com/grupo1/ingsw_app/security/AuthSessionFilter.java
+
 package com.grupo1.ingsw_app.security;
 
 import com.grupo1.ingsw_app.domain.Persona;
@@ -27,7 +27,7 @@ public class AutorizacionFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
 
-        String sid = readCookie(req, "SESSION_ID"); // null si no está
+        String sid = readCookie(req, "SESSION_ID");
         if (sid != null) {
             try {
                 var usuario = auth.requireSession(sid);

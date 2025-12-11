@@ -3,7 +3,6 @@ package com.grupo1.ingsw_app.service;
 
 import com.grupo1.ingsw_app.domain.*;
 import com.grupo1.ingsw_app.dtos.AtencionLogDTO;
-import com.grupo1.ingsw_app.dtos.AtencionResumenDTO;
 import com.grupo1.ingsw_app.dtos.PacienteEnAtencionDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.DoctorYaTienePacienteEnAtencionException;

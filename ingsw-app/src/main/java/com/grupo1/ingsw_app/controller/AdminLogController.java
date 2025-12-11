@@ -1,4 +1,4 @@
-// src/main/java/com/grupo1/ingsw_app/controller/AdminLogController.java
+
 package com.grupo1.ingsw_app.controller;
 
 import com.grupo1.ingsw_app.service.AdminLogService;

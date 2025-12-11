@@ -4,7 +4,6 @@ package com.grupo1.ingsw_app.service;
 import com.grupo1.ingsw_app.domain.Atencion;
 import com.grupo1.ingsw_app.domain.Ingreso;
 import com.grupo1.ingsw_app.dtos.AtencionLogDTO;
-import com.grupo1.ingsw_app.dtos.AtencionResumenDTO;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.persistence.IAtencionRepository;
 import com.grupo1.ingsw_app.persistence.IIngresoRepository;

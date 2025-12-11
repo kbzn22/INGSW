@@ -1,4 +1,3 @@
-// src/main/java/com/grupo1/ingsw_app/dtos/AtencionLogDTO.java
 package com.grupo1.ingsw_app.dtos;
 
 import java.time.LocalDateTime;
@@ -13,7 +12,7 @@ public class AtencionLogDTO {
     private String informe;
     private LocalDateTime fechaAtencion;
 
-    // info del ingreso asociada
+
     private String cuilPaciente;
     private String cuilEnfermera;
     private Integer nivel;
@@ -46,39 +45,16 @@ public class AtencionLogDTO {
         return id;
     }
 
-    public UUID getIngresoId() {
-        return ingresoId;
-    }
-
-    public String getCuilDoctor() {
-        return cuilDoctor;
-    }
-
     public String getInforme() {
         return informe;
-    }
-
-    public LocalDateTime getFechaAtencion() {
-        return fechaAtencion;
     }
 
     public String getCuilPaciente() {
         return cuilPaciente;
     }
 
-    public String getCuilEnfermera() {
-        return cuilEnfermera;
-    }
-
     public Integer getNivel() {
         return nivel;
     }
 
-    public String getEstadoIngreso() {
-        return estadoIngreso;
-    }
-
-    public LocalDateTime getFechaIngreso() {
-        return fechaIngreso;
-    }
 }

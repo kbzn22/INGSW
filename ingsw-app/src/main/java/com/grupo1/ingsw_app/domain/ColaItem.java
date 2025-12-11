@@ -9,9 +9,9 @@ public class ColaItem {
     private String nombre;
     private String apellido;
     private String cuil;
-    private int    nivel;         // número 0..4, etc
+    private int    nivel;
     private String estado;
-    private String nombreNivel;   // "Crítica", "Emergencia", etc.
+    private String nombreNivel;
     private LocalDateTime fechaIngreso;
 
     public ColaItem(
@@ -34,10 +34,6 @@ public class ColaItem {
         this.fechaIngreso = fechaIngreso;
     }
 
-    public UUID getIngresoId(){
-        return ingresoId;
-    }
-
     public String getNombre(){
         return nombre;
     }
@@ -52,14 +48,6 @@ public class ColaItem {
 
     public int getNivel(){
         return nivel;
-    }
-
-    public String getEstado(){
-        return estado;
-    }
-
-    public String getNombreNivel(){
-        return nombreNivel;
     }
 
     public LocalDateTime getFechaIngreso(){

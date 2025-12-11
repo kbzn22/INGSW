@@ -5,6 +5,7 @@ import com.grupo1.ingsw_app.dtos.IngresoRequest;
 import com.grupo1.ingsw_app.domain.ColaItem;
 import com.grupo1.ingsw_app.dtos.ObraSocialDto;
 import com.grupo1.ingsw_app.dtos.ResumenColaDTO;
+import com.grupo1.ingsw_app.dtos.ResumenIngresoDTO;
 import com.grupo1.ingsw_app.exception.CampoInvalidoException;
 import com.grupo1.ingsw_app.exception.EntidadNoEncontradaException;
 import com.grupo1.ingsw_app.exception.PacienteRedundanteEnColaException;

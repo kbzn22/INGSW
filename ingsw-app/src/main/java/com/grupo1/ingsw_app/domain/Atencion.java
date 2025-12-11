@@ -7,9 +7,9 @@ import java.util.UUID;
 public class Atencion {
 
     private UUID id;
-    private Doctor doctor;      // 1 doctor
-    private Ingreso ingreso;    // 1 ingreso
-    private String informe;     // informe del médico
+    private Doctor doctor;
+    private Ingreso ingreso;
+    private String informe;
     private LocalDateTime fechaAtencion;
 
     public Atencion(Doctor doctor, Ingreso ingreso) {

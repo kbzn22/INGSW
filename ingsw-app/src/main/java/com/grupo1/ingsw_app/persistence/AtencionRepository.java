@@ -1,4 +1,3 @@
-// src/main/java/com/grupo1/ingsw_app/persistence/AtencionRepository.java
 package com.grupo1.ingsw_app.persistence;
 
 import com.grupo1.ingsw_app.domain.Atencion;
@@ -75,7 +74,7 @@ public class AtencionRepository implements IAtencionRepository {
         WHERE id = ?
         """;
 
-    // ===== RowMapper usando PersonalRepository para hidratar el Doctor =====
+
     private RowMapper<Atencion> mapper() {
         return (rs, rowNum) -> {
             UUID id        = rs.getObject("id", UUID.class);
@@ -85,7 +84,7 @@ public class AtencionRepository implements IAtencionRepository {
             Timestamp ts   = rs.getTimestamp("fecha_atencion");
             LocalDateTime fa = ts != null ? ts.toLocalDateTime() : null;
 
-            // reconstruyo Ingreso mínimo
+
             Ingreso ingreso = ingresoRepository.findById(ingresoId).orElse(null);
 
             // Doctor desde PersonalRepository
@@ -117,8 +116,8 @@ public class AtencionRepository implements IAtencionRepository {
 
         jdbc.update(SQL_UPSERT,
                 atencion.getId(),
-                atencion.getIngreso().getId(),             // ingreso_id NOT NULL
-                atencion.getDoctor().getCuil().getValor(), // cuil_doctor NOT NULL
+                atencion.getIngreso().getId(),
+                atencion.getDoctor().getCuil().getValor(),
                 atencion.getInforme(),
                 Timestamp.valueOf(atencion.getFechaAtencion())
         );

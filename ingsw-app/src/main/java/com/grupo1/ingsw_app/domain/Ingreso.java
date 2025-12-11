@@ -83,10 +83,6 @@ public class Ingreso {
         return nivelEmergencia;
     }
 
-    public void setNivelEmergencia(NivelEmergencia nivelEmergencia) {
-        this.nivelEmergencia = nivelEmergencia;
-    }
-
     public EstadoIngreso getEstadoIngreso() {
         return estadoIngreso;
     }

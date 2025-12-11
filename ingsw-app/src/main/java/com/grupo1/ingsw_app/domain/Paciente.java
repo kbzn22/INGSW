@@ -32,11 +32,4 @@ public class Paciente extends Persona {
         return this.afiliado;
     }
 
-    public Domicilio getDomicilio() {
-        return domicilio;
-    }
-
-    public void setDomicilio(Domicilio domicilio) {
-        this.domicilio = domicilio;
-    }
 }

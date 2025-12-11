@@ -18,10 +18,6 @@ public class Doctor extends Persona{
         return matricula;
     }
 
-    public void setMatricula(String matricula) {
-        this.matricula = matricula;
-    }
-
     public Usuario getUsuario() {
         return usuario;
     }

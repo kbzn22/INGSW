@@ -12,15 +12,5 @@ public class ResumenColaDTO {
         this.finalizados = finalizados;
     }
 
-    public int getPendientes() {
-        return pendientes;
-    }
 
-    public int getEnAtencion() {
-        return enAtencion;
-    }
-
-    public int getFinalizados() {
-        return finalizados;
-    }
 }

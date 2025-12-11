@@ -1,4 +1,4 @@
-// src/main/java/com/grupo1/ingsw_app/security/Sesion.java
+
 package com.grupo1.ingsw_app.security;
 
 import com.grupo1.ingsw_app.domain.Doctor;
@@ -17,7 +17,7 @@ import java.util.Base64;
 
 @Component
 @Scope(value = WebApplicationContext.SCOPE_SESSION,
-        proxyMode = ScopedProxyMode.TARGET_CLASS) // una instancia por sesión HTTP
+        proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class Sesion {
 
     private String id;
@@ -26,7 +26,7 @@ public class Sesion {
     private Persona persona;
 
 
-    // ---- API de gestión ----
+
     public void iniciar(String usuario, Persona persona, long horas) {
         this.id = nuevoId();
         this.usuario = usuario;
@@ -45,14 +45,14 @@ public class Sesion {
         return expiresAt == null || Instant.now().isAfter(expiresAt);
     }
 
-    // ---- helpers ----
+
     private static String nuevoId() {
         byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    // ---- getters ----
+
     public String getId() { return id; }
     public String getUsuario() { return usuario; }
     public Instant getExpiresAt() { return expiresAt; }
@@ -73,7 +73,7 @@ public class Sesion {
 
         this.persona = persona;
 
-        // detecta el tipo concreto y saca el username del Usuario embebido
+
         if (persona instanceof Doctor d && d.getUsuario() != null) {
             this.usuario = d.getUsuario().getUsuario();
         } else if (persona instanceof Enfermera e && e.getUsuario() != null) {

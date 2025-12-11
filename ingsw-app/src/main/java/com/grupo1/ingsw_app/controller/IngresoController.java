@@ -27,7 +27,7 @@ public class IngresoController {
         this.atencionService = atencionService;
     }
 
-    @GetMapping("/{ingresoId}/detalle") //revisalo. no es mejor que devuelva el ingreso comun y corriente con todos lo datos del paciente?
+    @GetMapping("/{ingresoId}/detalle")
     public ResponseEntity<?> buscarPorId(@PathVariable UUID ingresoId) {
         Ingreso ingreso = ingresoService.obtenerIngreso(ingresoId);
         return ResponseEntity.ok(ingreso);
@@ -71,7 +71,7 @@ public class IngresoController {
         return ingresoService.obtenerColaPendiente();
     }
 
-    @GetMapping("/en-atencion") //revisalo kbza. esta bien que todas esas cosas las haga el controlador?
+    @GetMapping("/en-atencion")
     public ResponseEntity<PacienteEnAtencionDTO> getEnAtencion() {
         return atencionService.obtenerPacienteEnAtencion()
                 .map(ResponseEntity::ok)
