@@ -34,6 +34,10 @@ public class ColaItem {
         this.fechaIngreso = fechaIngreso;
     }
 
+    public UUID getIngresoId(){
+        return ingresoId;
+    }
+
     public String getNombre(){
         return nombre;
     }
@@ -49,6 +53,7 @@ public class ColaItem {
     public int getNivel(){
         return nivel;
     }
+
 
     public LocalDateTime getFechaIngreso(){
         return fechaIngreso;
