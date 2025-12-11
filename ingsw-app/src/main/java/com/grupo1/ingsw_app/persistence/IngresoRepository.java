@@ -75,9 +75,13 @@ public class IngresoRepository implements IIngresoRepository {
       p.email     AS paciente_email,
       p.calle     AS paciente_calle,
       p.numero    AS paciente_numero,
-      p.localidad AS paciente_localidad
+      p.localidad AS paciente_localidad,
+      p.numero_afiliado AS paciente_numero_afiliado,
+      p.obra_social_id  AS obra_social_id,
+        os.nombre         AS obra_social_nombre
     FROM ingreso i
     JOIN paciente p ON p.cuil = i.cuil_paciente
+    LEFT JOIN obra_social os ON os.id = p.obra_social_id
     WHERE i.id = ?
     """;
 
@@ -280,9 +284,32 @@ public class IngresoRepository implements IIngresoRepository {
                 );
             }
 
-            // Paciente
-            ObraSocial obraSocial = null;      // por ahora no la usamos en la cola
-            String numeroAfiliado = null;      // idem
+            // =================== OBRA SOCIAL / AFILIADO ===================
+            UUID obraSocialId = null;
+            String obraSocialNombre = null;
+            String numeroAfiliado = null;
+
+            try {
+                obraSocialId = rs.getObject("obra_social_id", UUID.class);
+            } catch (Exception ignored) {
+                // por si alguna query vieja no trae la columna
+            }
+
+            try {
+                obraSocialNombre = rs.getString("obra_social_nombre");
+            } catch (Exception ignored) {
+            }
+
+            try {
+                numeroAfiliado = rs.getString("paciente_numero_afiliado");
+            } catch (Exception ignored) {
+            }
+
+            ObraSocial obraSocial = null;
+            if (obraSocialId != null) {
+                // Ajustá el constructor según tu clase ObraSocial
+                obraSocial = new ObraSocial(obraSocialId, obraSocialNombre);
+            }
 
             Paciente paciente = new Paciente(
                     rs.getString("paciente_cuil"),        // cuil
